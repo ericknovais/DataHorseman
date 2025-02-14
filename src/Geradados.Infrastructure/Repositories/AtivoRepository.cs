@@ -1,8 +1,8 @@
-﻿using Geradados.DataAccess.DB;
-using GeraDados.DataModel.Models;
-using GeraDados.DataModel.Repositories;
+﻿using Geradados.Infrastructure.Persistence;
+using GeraDados.Domain.Entities;
+using GeraDados.Domain.Repositories;
 
-namespace Geradados.DataAccess.Repositories
+namespace Geradados.Infrastructure.Intercafes
 {
     public class AtivoRepository : RepositoryBase<Ativo>, IAtivoRepository
     {
@@ -15,7 +15,7 @@ namespace Geradados.DataAccess.Repositories
         public List<Ativo> ObtemAtivosPorTipoDeAtivo(TipoDeAtivo? tipoDeAtivo)
         {
 #pragma warning disable  // Dereference of a possibly null reference.
-            return ctx.Ativos.Where(ativo => ativo.TipoDeAtivo.ID.Equals(tipoDeAtivo.ID)).ToList();
+            return ctx.Ativos.Where(ativo => ativo.TipoDeAtivoId.Equals(tipoDeAtivo.ID)).ToList();
         }
     }
 }

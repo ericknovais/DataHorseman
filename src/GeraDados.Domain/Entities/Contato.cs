@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
 
-namespace GeraDados.DataModel.Models;
+namespace GeraDados.Domain.Entities;
 
 [Table("Contatos")]
 public class Contato : EntityBase

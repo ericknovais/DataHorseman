@@ -1,6 +1,6 @@
-﻿using GeraDados.DataModel.Models;
+﻿using GeraDados.Domain.Entities;
 
-namespace GeraDados.DataModel.Repositories;
+namespace GeraDados.Domain.Repositories;
 
 public interface IAtivoRepository : IRepositoryBase<Ativo>
 {

@@ -1,4 +1,4 @@
-﻿namespace Geradados.DataAccess.DB.Dtos
+﻿namespace Geradados.Infrastructure.Persistence.Dtos
 {
     public class AtivoJson
     {

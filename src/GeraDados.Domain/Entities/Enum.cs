@@ -1,4 +1,4 @@
-﻿namespace GeraDados.DataModel.Models;
+﻿namespace GeraDados.Domain.Entities;
 
 public enum eTipoContato
 {

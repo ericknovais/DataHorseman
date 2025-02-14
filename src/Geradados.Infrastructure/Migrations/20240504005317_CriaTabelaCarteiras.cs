@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-namespace Geradados.DataAccess.Migrations
+namespace Geradados.Infrastructure.Migrations
 {
     /// <inheritdoc />
     public partial class CriaTabelaCarteiras : Migration

@@ -1,7 +1,7 @@
-﻿using GeraDados.DataModel.Models;
+﻿using GeraDados.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 
-namespace Geradados.DataAccess.DB;
+namespace Geradados.Infrastructure.Persistence;
 
 public class ContextoDataBase : DbContext
 {

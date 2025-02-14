@@ -1,13 +1,13 @@
-﻿using Geradados.DataAccess.DB;
-using GeraDados.DataModel.Models;
-using GeraDados.DataModel.Repositories;
+﻿using Geradados.Infrastructure.Persistence;
+using GeraDados.Domain.Entities;
+using GeraDados.Domain.Repositories;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Geradados.DataAccess.Repositories
+namespace Geradados.Infrastructure.Intercafes
 {
     public class TipoDeAtivoRepository : RepositoryBase<TipoDeAtivo>, ITipoDeAtivoRepository
     {

@@ -1,11 +1,11 @@
-﻿using GeraDados.DataModel.Models;
+﻿using GeraDados.Domain.Entities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace GeraDados.DataModel.Repositories
+namespace GeraDados.Domain.Repositories
 {
     public interface ITipoDeAtivoRepository : IRepositoryBase<TipoDeAtivo>
     {

@@ -1,6 +1,6 @@
-using Geradados.DataAccess.DB.Dtos;
-using Geradados.DataAccess.Repositories;
-using GeraDados.DataModel.Models;
+using Geradados.Infrastructure.Persistence.Dtos;
+using Geradados.Infrastructure.Intercafes;
+using GeraDados.Domain.Entities;
 
 namespace GeraDados.App;
 
@@ -112,13 +112,14 @@ public partial class frmUpload : Form
     private void SalvaListaDeAtivos(List<AtivoJson> ativos, TipoDeAtivo tipoDeAtivo)
     {
         ativos.ForEach(
-                ativoJson => 
+                ativoJson =>
                     repository.Ativo.Salvar(
-                        new Ativo(  
-                            tipoDeAtivo, 
-                            ativoJson.Ticker, 
-                            ativoJson.Nome, 
-                            ultimaNegociacao: $"{ativoJson.Ultimo},{ativoJson.Decimal}"
+
+                        Ativo.AdicionarNovoAtivo(
+                            tipoDeAtivo: tipoDeAtivo,
+                            ticker: ativoJson.Ticker,
+                            nome: ativoJson.Nome,
+                            ultimaNegociacao: Convert.ToDecimal($"{ativoJson.Ultimo},{ativoJson.Decimal}")
                         )
                     )
         );

@@ -1,8 +1,8 @@
-﻿using Geradados.DataAccess.DB;
-using GeraDados.DataModel.Models;
-using GeraDados.DataModel.Repositories;
+﻿using Geradados.Infrastructure.Persistence;
+using GeraDados.Domain.Entities;
+using GeraDados.Domain.Repositories;
 
-namespace Geradados.DataAccess.Repositories;
+namespace Geradados.Infrastructure.Intercafes;
 
 public class Repository : IRepository
 {
