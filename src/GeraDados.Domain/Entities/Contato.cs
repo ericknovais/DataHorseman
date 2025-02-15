@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
+using GeraDados.Domain.Enums;
 
 namespace GeraDados.Domain.Entities;
 

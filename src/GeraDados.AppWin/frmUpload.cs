@@ -1,6 +1,7 @@
 using Geradados.Infrastructure.Persistence.Dtos;
 using Geradados.Infrastructure.Intercafes;
 using GeraDados.Domain.Entities;
+using GeraDados.Domain.Enums;
 
 namespace GeraDados.App;
 
