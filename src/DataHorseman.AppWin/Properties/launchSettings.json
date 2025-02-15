@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "DataHorseman.AppWin": {
+      "commandName": "Project"
+    },
+    "Profile 1": {
+      "commandName": "Executable"
+    }
+  }
+}
