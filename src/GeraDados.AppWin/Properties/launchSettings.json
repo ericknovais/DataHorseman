@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "GeraDados.App": {
+      "commandName": "Project"
+    },
+    "Profile 1": {
+      "commandName": "Executable"
+    }
+  }
+}
