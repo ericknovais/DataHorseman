@@ -1,8 +1,8 @@
-﻿using DataHorseman.Domain.Entities;
+﻿using DataHorseman.Domain.Entidades;
 
-namespace DataHorseman.Domain.Repositories;
+namespace DataHorseman.Domain.Interfaces;
 
-public interface IRepositoryBase<T> where T : EntityBase
+public interface IRepositoryBase<T> where T : EntidadeBase
 {
     void Salvar(T entity);
     void Excluir(T entity);

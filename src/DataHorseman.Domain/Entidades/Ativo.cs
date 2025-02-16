@@ -1,10 +1,10 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace DataHorseman.Domain.Entities;
+namespace DataHorseman.Domain.Entidades;
 
 [Table("Ativos")]
-public class Ativo : EntityBase
+public class Ativo : EntidadeBase
 {
     [Required]
     public int TipoDeAtivoId { get; set; }

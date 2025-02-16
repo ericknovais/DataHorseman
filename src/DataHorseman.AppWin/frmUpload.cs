@@ -1,7 +1,7 @@
-using DataHorseman.Domain.Entities;
+using DataHorseman.Domain.Entidades;
 using DataHorseman.Domain.Enums;
-using DataHorseman.Infrastructure.Intercafes;
-using DataHorseman.Infrastructure.Persistence.Dtos;
+using DataHorseman.Infrastructure.Persistencia.Dtos;
+using DataHorseman.Infrastructure.Persistencia.Repositorios;
 
 namespace DataHorseman.AppWin;
 

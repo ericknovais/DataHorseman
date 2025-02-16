@@ -1,9 +1,9 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
 
-namespace DataHorseman.Domain.Entities
+namespace DataHorseman.Domain.Entidades
 {
     [Table("Carteiras")]
-    public class Carteira : EntityBase
+    public class Carteira : EntidadeBase
     {
         public Carteira()
         {

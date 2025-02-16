@@ -1,4 +1,4 @@
-﻿namespace DataHorseman.Domain.Repositories;
+﻿namespace DataHorseman.Domain.Interfaces;
 
 public interface IRepository
 {

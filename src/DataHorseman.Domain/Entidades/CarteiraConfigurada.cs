@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
 
-namespace DataHorseman.Domain.Entities;
+namespace DataHorseman.Domain.Entidades;
 
 [NotMapped]
 public class CarteiraConfigurada

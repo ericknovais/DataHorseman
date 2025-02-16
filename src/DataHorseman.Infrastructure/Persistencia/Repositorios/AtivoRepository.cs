@@ -1,13 +1,13 @@
-﻿using DataHorseman.Domain.Entities;
-using DataHorseman.Domain.Repositories;
-using DataHorseman.Infrastructure.Persistence;
+﻿using DataHorseman.Domain.Entidades;
+using DataHorseman.Domain.Interfaces;
+using DataHorseman.Infrastructure.Persistencia.DataContext;
 
-namespace DataHorseman.Infrastructure.Intercafes
+namespace DataHorseman.Infrastructure.Persistencia.Repositorios
 {
     public class AtivoRepository : RepositoryBase<Ativo>, IAtivoRepository
     {
-        ContextoDataBase ctx = new ContextoDataBase();
-        public AtivoRepository(ContextoDataBase contexto) : base(contexto)
+        DataHorsemanDbContext ctx = new DataHorsemanDbContext();
+        public AtivoRepository(DataHorsemanDbContext contexto) : base(contexto)
         {
             ctx = contexto;
         }

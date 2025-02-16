@@ -1,10 +1,10 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
 using DataHorseman.Domain.Enums;
 
-namespace DataHorseman.Domain.Entities;
+namespace DataHorseman.Domain.Entidades;
 
 [Table("Contatos")]
-public class Contato : EntityBase
+public class Contato : EntidadeBase
 {
     public Contato()
     {

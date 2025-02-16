@@ -1,6 +1,6 @@
-﻿using DataHorseman.Domain.Entities;
+﻿using DataHorseman.Domain.Entidades;
 
-namespace DataHorseman.Domain.Repositories;
+namespace DataHorseman.Domain.Interfaces;
 
 public interface IEnderecoRepository: IRepositoryBase<Endereco>
 {
