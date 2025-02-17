@@ -3,7 +3,7 @@ using DataHorseman.Domain.Interfaces;
 using DataHorseman.Infrastructure.Persistencia.DataContext;
 using Microsoft.EntityFrameworkCore;
 
-namespace DataHorseman.Infrastructure.Persistencia.Repositorios;
+namespace DataHorseman.Infrastructure.Persistencia.Repositories;
 
 public abstract class RepositoryBase<T> : IRepositoryBase<T> where T : EntidadeBase
 {
