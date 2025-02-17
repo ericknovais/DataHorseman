@@ -1,4 +1,5 @@
 ﻿using DataHorseman.Domain.Entidades;
+using DataHorseman.Domain.Enums;
 using DataHorseman.Domain.Interfaces;
 using DataHorseman.Infrastructure.Persistencia.DataContext;
 
@@ -12,10 +13,10 @@ namespace DataHorseman.Infrastructure.Persistencia.Repositories
             ctx = contexto;
         }
 
-        public List<Ativo> ObtemAtivosPorTipoDeAtivo(TipoDeAtivo? tipoDeAtivo)
+        public List<Ativo> ObtemAtivosPorTipoDeAtivo(eTipoDeAtivo tipoDeAtivoID)
         {
 #pragma warning disable  // Dereference of a possibly null reference.
-            return ctx.Ativos.Where(ativo => ativo.TipoDeAtivoId.Equals(tipoDeAtivo.ID)).ToList();
+            return ctx.Ativos.Where(ativo => ativo.TipoDeAtivoId == (int)tipoDeAtivoID).ToList();
         }
     }
 }

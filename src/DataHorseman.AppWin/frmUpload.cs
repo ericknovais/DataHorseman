@@ -8,20 +8,24 @@ namespace DataHorseman.AppWin;
 
 public partial class frmUpload : Form
 {
-    Repository repository = new Repository();
-    protected IList<TipoContato> listaTipoContatos;
-    private List<Ativo> acoes;
-    private List<Ativo> fiis;
+    protected readonly Repository _repository = new Repository();
+    private IList<TipoContato> _listaTipoContatos;
+    private List<Ativo> _acoes;
+    private List<Ativo> _fiis;
 
     #region Métodos Do Forms
     public frmUpload()
     {
-        InitializeComponent();
-        Task task = InicializaDadosNoBanco();
-        CarregaListas();
+        _acoes = new List<Ativo>();
+        _fiis = new List<Ativo>(); 
+        _listaTipoContatos = new List<TipoContato>();
+
+        InitializeComponent();   
     }
-    private void btnUpload_Click(object sender, EventArgs e)
+    private async void btnUpload_Click(object sender, EventArgs e)
     {
+        await InicializaDadosNoBanco();
+        await CarregaListas();
         OpenFileDialog ofd = new OpenFileDialog();
         ofd.CheckFileExists = true;
         ofd.Multiselect = false;
@@ -38,27 +42,27 @@ public partial class frmUpload : Form
             {
                 foreach (PessoaJson pessoaJson in pessoas)
                 {
-                    if (repository.Pessoa.ObtemPessoaPorCPF(pessoaJson.CPF) != null)
+                    if (_repository.Pessoa.ObtemPessoaPorCPF(pessoaJson.CPF) != null)
                         continue;
 
                     string[] valoresContatos = { pessoaJson.Email, pessoaJson.Telefone_fixo, pessoaJson.Celular };
                     Pessoa pessoa = new Pessoa(pessoaJson.Nome, pessoaJson.CPF, pessoaJson.RG, pessoaJson.Sexo, Convert.ToDateTime(pessoaJson.Data_nasc));
-                    List<Contato> contatos = Contato.ListaDeContatos(pessoa, listaTipoContatos, valoresContatos);
+                    List<Contato> contatos = Contato.ListaDeContatos(pessoa, _listaTipoContatos, valoresContatos);
                     Endereco endereco = new Endereco(pessoa, pessoaJson.CEP, pessoaJson.Endereco, pessoaJson.Numero, pessoaJson.Bairro, pessoaJson.Cidade, pessoaJson.Estado);
-                    CarteiraConfigurada carteiraConfigurada = CarteiraConfigurada.NovaCarteiraConfiguracao(acoes, fiis);
+                    CarteiraConfigurada carteiraConfigurada = CarteiraConfigurada.NovaCarteiraConfiguracao(_acoes, _fiis);
 
-                    repository.Pessoa.CriarNovoAsync(pessoa);
-                    contatos.ForEach(contato => repository.Contato.CriarNovoAsync(contato));
-                    repository.Endereco.CriarNovoAsync(endereco);
+                    _repository.Pessoa.CriarNovoAsync(pessoa);
+                    contatos.ForEach(contato => _repository.Contato.CriarNovoAsync(contato));
+                    _repository.Endereco.CriarNovoAsync(endereco);
                     carteiraConfigurada.Acoes.ForEach(
                         acao =>
-                            repository.Carteira.CriarNovoAsync(new Carteira(pessoa, acao, carteiraConfigurada.ValorParaAcoes))
+                            _repository.Carteira.CriarNovoAsync(new Carteira(pessoa, acao, carteiraConfigurada.ValorParaAcoes))
                     );
                     carteiraConfigurada.Fiis.ForEach(
                         fii =>
-                            repository.Carteira.CriarNovoAsync(new Carteira(pessoa, fii, carteiraConfigurada.ValorPorFiis))
+                            _repository.Carteira.CriarNovoAsync(new Carteira(pessoa, fii, carteiraConfigurada.ValorPorFiis))
                     );
-                    repository.SaveChanges();
+                    _repository.SaveChanges();
                 }
 
                 MessageBox.Show("Cadastro realizado com sucesso!", "Sucesso!", MessageBoxButtons.OK, MessageBoxIcon.Information);
@@ -78,78 +82,75 @@ public partial class frmUpload : Form
     #region Métodos void
     private async Task InicializaDadosNoBanco()
     {
-        var tipoContatos = await repository.TipoContato.ObterTodosAsync();
+        var tipoContatos = await _repository.TipoContato.ObterTodosAsync();
         if (tipoContatos.Count == 0)
             SalvaTipoDeContatosNoBanco();
-        var tipoDeAtivos = await repository.TipoDeAtivo.ObterTodosAsync();
+        var tipoDeAtivos = await _repository.TipoDeAtivo.ObterTodosAsync();
         if (tipoDeAtivos.Count == 0)
             SalvaTipoDeAtivosNoBanco();
-        TipoDeAtivo? acao = await repository.TipoDeAtivo.ObterPorIdAsync((int)eTipoDeAtivo.Acao);
-
-        if (repository.Ativo.ObtemAtivosPorTipoDeAtivo(acao).Count.Equals(0))
-            SalvarAtivosNoBancoDeDados(acao);
-        var fii = await repository.TipoDeAtivo.ObterPorIdAsync((int)eTipoDeAtivo.FundoImobiliario);
-        if (repository.Ativo.ObtemAtivosPorTipoDeAtivo(fii).Count.Equals(0))
-            SalvarAtivosNoBancoDeDados(fii);
+        if (_repository.Ativo.ObtemAtivosPorTipoDeAtivo(eTipoDeAtivo.Acao).Count == 0)
+            SalvarAtivosNoBancoDeDados(eTipoDeAtivo.Acao);
+        if (_repository.Ativo.ObtemAtivosPorTipoDeAtivo(eTipoDeAtivo.FundoImobiliario).Count == 0)
+            SalvarAtivosNoBancoDeDados(eTipoDeAtivo.FundoImobiliario);
     }
     private async Task CarregaListas()
     {
-        listaTipoContatos = await repository.TipoContato.ObterTodosAsync();
-        acoes = await ObtemListaDeAtivosPorTipoDeAtivo((int)eTipoDeAtivo.Acao);
-        fiis = await ObtemListaDeAtivosPorTipoDeAtivo((int)eTipoDeAtivo.FundoImobiliario);
+        _listaTipoContatos = await _repository.TipoContato.ObterTodosAsync();
+        _acoes = await ObtemListaDeAtivosPorTipoDeAtivo(eTipoDeAtivo.Acao);
+        _fiis = await ObtemListaDeAtivosPorTipoDeAtivo(eTipoDeAtivo.FundoImobiliario);
     }
-    private void SalvarAtivosNoBancoDeDados(TipoDeAtivo? tipoDeAtivo)
+    private void SalvarAtivosNoBancoDeDados(eTipoDeAtivo tipoDeAtivo)
     {
         if (tipoDeAtivo != null)
-            if (tipoDeAtivo.ID.Equals((int)eTipoDeAtivo.Acao))
+            if (tipoDeAtivo == eTipoDeAtivo.Acao)
             {
                 IList<AtivoJson>? acoes = Arquivo.LerArquivoJson<AtivoJson>(@"..\..\..\CargaDeAtivos\acoes.json");
                 if (acoes != null)
                     SalvaListaDeAtivos(acoes.ToList(), tipoDeAtivo);
             }
-            else if (tipoDeAtivo.ID.Equals((int)eTipoDeAtivo.FundoImobiliario))
+            else if (tipoDeAtivo == eTipoDeAtivo.FundoImobiliario)
             {
                 IList<AtivoJson>? fii = Arquivo.LerArquivoJson<AtivoJson>(@"..\..\..\CargaDeAtivos\fiis.json");
                 if (fii != null)
                     SalvaListaDeAtivos(fii.Where(fii => fii.Ultimo != "0").ToList(), tipoDeAtivo);
             }
     }
-    private void SalvaListaDeAtivos(List<AtivoJson> ativos, TipoDeAtivo tipoDeAtivo)
+    private void SalvaListaDeAtivos(List<AtivoJson> ativos, eTipoDeAtivo tipoDeAtivo)
     {
         ativos.ForEach(
                 ativoJson =>
-                    repository.Ativo.CriarNovoAsync(
+                    _repository.Ativo.CriarNovoAsync(
 
                         Ativo.AdicionarNovoAtivo(
-                            tipoDeAtivo: tipoDeAtivo,
+                            tipoDeAtivoID: tipoDeAtivo,
                             ticker: ativoJson.Ticker,
                             nome: ativoJson.Nome,
                             ultimaNegociacao: Convert.ToDecimal($"{ativoJson.Ultimo},{ativoJson.Decimal}")
                         )
                     )
         );
-        repository.SaveChanges();
+        _repository.SaveChanges();
     }
     private void SalvaTipoDeAtivosNoBanco()
     {
         List<TipoDeAtivo> listaTipoDeAtivos = new TipoDeAtivo().CarregaTipoDeAtivo();
         foreach (TipoDeAtivo tipoDeAtivo in listaTipoDeAtivos)
-            repository.TipoDeAtivo.CriarNovoAsync(tipoDeAtivo);
-        repository.SaveChanges();
+            _repository.TipoDeAtivo.CriarNovoAsync(tipoDeAtivo);
+        _repository.SaveChanges();
     }
     private void SalvaTipoDeContatosNoBanco()
     {
         List<TipoContato> listadeTipocontatos = new TipoContato().CarregaListaTipoContato();
         foreach (TipoContato tipoContato in listadeTipocontatos)
-            repository.TipoContato.CriarNovoAsync(tipoContato);
-        repository.SaveChanges();
+            _repository.TipoContato.CriarNovoAsync(tipoContato);
+        _repository.SaveChanges();
     }
     #endregion
 
     #region Métodos com return
-    private async Task<List<Ativo>> ObtemListaDeAtivosPorTipoDeAtivo(int idTipoAtivo)
+    private async Task<List<Ativo>> ObtemListaDeAtivosPorTipoDeAtivo(eTipoDeAtivo idTipoAtivo)
     {
-        return repository.Ativo.ObtemAtivosPorTipoDeAtivo(await repository.TipoDeAtivo.ObterPorIdAsync(idTipoAtivo));
+        return _repository.Ativo.ObtemAtivosPorTipoDeAtivo(idTipoAtivo);
     }
     #endregion
 }

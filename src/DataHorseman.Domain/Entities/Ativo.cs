@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using DataHorseman.Domain.Enums;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace DataHorseman.Domain.Entidades;
@@ -23,11 +24,11 @@ public class Ativo : EntidadeBase
         base.Valida();
     }
 
-    public static Ativo AdicionarNovoAtivo(TipoDeAtivo tipoDeAtivo, string ticker, string nome, decimal ultimaNegociacao)
+    public static Ativo AdicionarNovoAtivo(eTipoDeAtivo tipoDeAtivoID, string ticker, string nome, decimal ultimaNegociacao)
     {
         Ativo ativo = new Ativo()
         {
-            TipoDeAtivo = tipoDeAtivo,
+            TipoDeAtivoId = (int)tipoDeAtivoID,
             Ticker = ticker.Trim(),
             Nome = nome.Trim(),
             UltimaNegociacao = ultimaNegociacao,
