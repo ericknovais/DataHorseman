@@ -4,8 +4,10 @@ namespace DataHorseman.Domain.Interfaces;
 
 public interface IRepositoryBase<T> where T : EntidadeBase
 {
-    void Salvar(T entity);
-    void Excluir(T entity);
-    T? ObterPorId(int id);
-    IList<T> ObterTodos();
+    Task CriarNovoAsync(T entidade);
+    void Excluir(T entidade);
+    void Atualiza(T entidade);
+    Task<T?> ObterPorIdAsync(int id);
+    Task<IList<T>> ObterTodosAsync();
+    Task<int> SaveChangesAsync();
 }

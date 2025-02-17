@@ -12,7 +12,7 @@ namespace DataHorseman.Infrastructure.Persistencia.Repositorios
             ctx = contexto;
         }
 
-        public new void Salvar(Carteira carteira)
+        public new void CriarNovoAsync(Carteira carteira)
         {
             if (carteira.ID.Equals(0) && carteira.Cota > 0)
                 ctx.Set<Carteira>().Add(carteira);

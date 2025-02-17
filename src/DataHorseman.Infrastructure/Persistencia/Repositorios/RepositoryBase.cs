@@ -1,35 +1,30 @@
 ﻿using DataHorseman.Domain.Entidades;
 using DataHorseman.Domain.Interfaces;
 using DataHorseman.Infrastructure.Persistencia.DataContext;
+using Microsoft.EntityFrameworkCore;
 
 namespace DataHorseman.Infrastructure.Persistencia.Repositorios;
 
 public abstract class RepositoryBase<T> : IRepositoryBase<T> where T : EntidadeBase
 {
-    DataHorsemanDbContext ctx;
+    private readonly DataHorsemanDbContext _contexto;
+    private readonly DbSet<T> _dbSet;
+
     public RepositoryBase(DataHorsemanDbContext contexto)
     {
-        ctx = contexto;
+        _contexto = contexto;
+        _dbSet = _contexto.Set<T>();
     }
 
-    public void Excluir(T entity)
-    {
-        ctx.Set<T>().Remove(entity);
-    }
+    public void Atualiza(T entidade) => _dbSet.Update(entidade);
 
-    public T? ObterPorId(int id)
-    {
-        return ctx.Set<T>().FirstOrDefault(entity => entity.ID.Equals(id));
-    }
+    public async Task CriarNovoAsync(T entidade) => await _dbSet.AddAsync(entidade);
 
-    public IList<T> ObterTodos()
-    {
-        return ctx.Set<T>().ToList();
-    }
+    public void Excluir(T entidade) => _dbSet.Remove(entidade);
 
-    public void Salvar(T entity)
-    {
-        if (entity.ID.Equals(0))
-            ctx.Set<T>().Add(entity);
-    }
+    public async Task<T?> ObterPorIdAsync(int id) => await _dbSet.FirstOrDefaultAsync(entidade => entidade.ID.Equals(id));
+
+    public async Task<IList<T>> ObterTodosAsync() => await _dbSet.ToListAsync();
+
+    public async Task<int> SaveChangesAsync() => await _contexto.SaveChangesAsync(); 
 }

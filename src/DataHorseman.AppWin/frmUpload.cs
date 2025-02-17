@@ -8,7 +8,7 @@ namespace DataHorseman.AppWin;
 public partial class frmUpload : Form
 {
     Repository repository = new Repository();
-    private IList<TipoContato> listaTipoContatos;
+    protected IList<TipoContato> listaTipoContatos;
     private List<Ativo> acoes;
     private List<Ativo> fiis;
 
@@ -16,7 +16,7 @@ public partial class frmUpload : Form
     public frmUpload()
     {
         InitializeComponent();
-        InicializaDadosNoBanco();
+        Task task = InicializaDadosNoBanco();
         CarregaListas();
     }
     private void btnUpload_Click(object sender, EventArgs e)
@@ -46,16 +46,16 @@ public partial class frmUpload : Form
                     Endereco endereco = new Endereco(pessoa, pessoaJson.CEP, pessoaJson.Endereco, pessoaJson.Numero, pessoaJson.Bairro, pessoaJson.Cidade, pessoaJson.Estado);
                     CarteiraConfigurada carteiraConfigurada = CarteiraConfigurada.NovaCarteiraConfiguracao(acoes, fiis);
 
-                    repository.Pessoa.Salvar(pessoa);
-                    contatos.ForEach(contato => repository.Contato.Salvar(contato));
-                    repository.Endereco.Salvar(endereco);
+                    repository.Pessoa.CriarNovoAsync(pessoa);
+                    contatos.ForEach(contato => repository.Contato.CriarNovoAsync(contato));
+                    repository.Endereco.CriarNovoAsync(endereco);
                     carteiraConfigurada.Acoes.ForEach(
                         acao =>
-                            repository.Carteira.Salvar(new Carteira(pessoa, acao, carteiraConfigurada.ValorParaAcoes))
+                            repository.Carteira.CriarNovoAsync(new Carteira(pessoa, acao, carteiraConfigurada.ValorParaAcoes))
                     );
                     carteiraConfigurada.Fiis.ForEach(
                         fii =>
-                            repository.Carteira.Salvar(new Carteira(pessoa, fii, carteiraConfigurada.ValorPorFiis))
+                            repository.Carteira.CriarNovoAsync(new Carteira(pessoa, fii, carteiraConfigurada.ValorPorFiis))
                     );
                     repository.SaveChanges();
                 }
@@ -75,24 +75,27 @@ public partial class frmUpload : Form
     #endregion
 
     #region Métodos void
-    private void InicializaDadosNoBanco()
+    private async Task InicializaDadosNoBanco()
     {
-        if (repository.TipoContato.ObterTodos().Count.Equals(0))
+        var tipoContatos = await repository.TipoContato.ObterTodosAsync();
+        if (tipoContatos.Count == 0)
             SalvaTipoDeContatosNoBanco();
-        if (repository.TipoDeAtivo.ObterTodos().Count.Equals(0))
+        var tipoDeAtivos = await repository.TipoDeAtivo.ObterTodosAsync();
+        if (tipoDeAtivos.Count == 0)
             SalvaTipoDeAtivosNoBanco();
-        TipoDeAtivo? acao = repository.TipoDeAtivo.ObterPorId((int)eTipoDeAtivo.Acao);
+        TipoDeAtivo? acao = await repository.TipoDeAtivo.ObterPorIdAsync((int)eTipoDeAtivo.Acao);
+
         if (repository.Ativo.ObtemAtivosPorTipoDeAtivo(acao).Count.Equals(0))
             SalvarAtivosNoBancoDeDados(acao);
-        TipoDeAtivo? fii = repository.TipoDeAtivo.ObterPorId((int)eTipoDeAtivo.FundoImobiliario);
+        var fii = await repository.TipoDeAtivo.ObterPorIdAsync((int)eTipoDeAtivo.FundoImobiliario);
         if (repository.Ativo.ObtemAtivosPorTipoDeAtivo(fii).Count.Equals(0))
             SalvarAtivosNoBancoDeDados(fii);
     }
-    private void CarregaListas()
+    private async Task CarregaListas()
     {
-        listaTipoContatos = repository.TipoContato.ObterTodos();
-        acoes = ObtemListaDeAtivosPorTipoDeAtivo((int)eTipoDeAtivo.Acao);
-        fiis = ObtemListaDeAtivosPorTipoDeAtivo((int)eTipoDeAtivo.FundoImobiliario);
+        listaTipoContatos = await repository.TipoContato.ObterTodosAsync();
+        acoes = await ObtemListaDeAtivosPorTipoDeAtivo((int)eTipoDeAtivo.Acao);
+        fiis = await ObtemListaDeAtivosPorTipoDeAtivo((int)eTipoDeAtivo.FundoImobiliario);
     }
     private void SalvarAtivosNoBancoDeDados(TipoDeAtivo? tipoDeAtivo)
     {
@@ -114,7 +117,7 @@ public partial class frmUpload : Form
     {
         ativos.ForEach(
                 ativoJson =>
-                    repository.Ativo.Salvar(
+                    repository.Ativo.CriarNovoAsync(
 
                         Ativo.AdicionarNovoAtivo(
                             tipoDeAtivo: tipoDeAtivo,
@@ -130,22 +133,22 @@ public partial class frmUpload : Form
     {
         List<TipoDeAtivo> listaTipoDeAtivos = new TipoDeAtivo().CarregaTipoDeAtivo();
         foreach (TipoDeAtivo tipoDeAtivo in listaTipoDeAtivos)
-            repository.TipoDeAtivo.Salvar(tipoDeAtivo);
+            repository.TipoDeAtivo.CriarNovoAsync(tipoDeAtivo);
         repository.SaveChanges();
     }
     private void SalvaTipoDeContatosNoBanco()
     {
         List<TipoContato> listadeTipocontatos = new TipoContato().CarregaListaTipoContato();
         foreach (TipoContato tipoContato in listadeTipocontatos)
-            repository.TipoContato.Salvar(tipoContato);
+            repository.TipoContato.CriarNovoAsync(tipoContato);
         repository.SaveChanges();
     }
     #endregion
 
     #region Métodos com return
-    private List<Ativo> ObtemListaDeAtivosPorTipoDeAtivo(int idTipoAtivo)
+    private async Task<List<Ativo>> ObtemListaDeAtivosPorTipoDeAtivo(int idTipoAtivo)
     {
-        return repository.Ativo.ObtemAtivosPorTipoDeAtivo(repository.TipoDeAtivo.ObterPorId(idTipoAtivo));
+        return repository.Ativo.ObtemAtivosPorTipoDeAtivo(await repository.TipoDeAtivo.ObterPorIdAsync(idTipoAtivo));
     }
     #endregion
 }
