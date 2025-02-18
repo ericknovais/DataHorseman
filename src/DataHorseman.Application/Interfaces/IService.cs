@@ -4,6 +4,7 @@ public interface IService
 {
     void SaveChanges();
     public IAtivoService AtivoService { get; }
+    public ICarteiraService CarteiraService { get; }
     public IContatoService ContatoService { get; }
     public IEnderecoService EnderecoService { get; }
     public IPessoaService PessoaService { get; }

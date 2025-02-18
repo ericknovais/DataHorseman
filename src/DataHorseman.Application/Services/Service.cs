@@ -15,6 +15,7 @@ public class Service : IService
         _mapper = mapper;
 
         AtivoService = new AtivoService(_repository.Ativo, _mapper);
+        CarteiraService = new CarteiraService(_repository.Carteira, _mapper);
     }
     public IAtivoService AtivoService { get; }
 
@@ -27,6 +28,8 @@ public class Service : IService
     public ITipoContatoService TipoContatoService => throw new NotImplementedException();
 
     public ITipoDeAtivoService TipoDeAtivoService => throw new NotImplementedException();
+
+    public ICarteiraService CarteiraService { get; }
 
     public void SaveChanges()
     {

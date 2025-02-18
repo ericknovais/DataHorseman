@@ -41,10 +41,10 @@ public class AtivoService : IAtivoService
         EntidadeEhNula(entidade);
 
         var ativo = Ativo.NovoAtivo(
-            entidade.TipoDeAtivo,
+            entidade.TipoDeAtivoId,
             entidade.Ticker,
             entidade.Nome,
-            entidade.UltimoValorNegociado);
+            entidade.UltimaNegociacao);
 
         await _ativoRepository.CriarNovoAsync(ativo);
     }
