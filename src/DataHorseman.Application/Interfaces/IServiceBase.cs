@@ -2,7 +2,7 @@
 
 namespace DataHorseman.Application.Interfaces;
 
-public interface IServiceBase<T> where T : EntidadeBase
+public interface IServiceBase<T> where T : class
 {
     Task CriarNovoAsync(T entidade);
     Task Excluir(T entidade);

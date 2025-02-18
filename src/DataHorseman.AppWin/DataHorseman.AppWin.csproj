@@ -14,10 +14,12 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="9.0.2" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\DataHorseman.Application\DataHorseman.Application.csproj" />
     <ProjectReference Include="..\DataHorseman.Domain\DataHorseman.Domain.csproj" />
     <ProjectReference Include="..\DataHorseman.Infrastructure\DataHorseman.Infrastructure.csproj" />
   </ItemGroup>

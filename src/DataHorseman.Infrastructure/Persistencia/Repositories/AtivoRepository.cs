@@ -7,16 +7,18 @@ namespace DataHorseman.Infrastructure.Persistencia.Repositories
 {
     public class AtivoRepository : RepositoryBase<Ativo>, IAtivoRepository
     {
-        DataHorsemanDbContext ctx = new DataHorsemanDbContext();
+        DataHorsemanDbContext _contexto = new DataHorsemanDbContext();
         public AtivoRepository(DataHorsemanDbContext contexto) : base(contexto)
         {
-            ctx = contexto;
+            _contexto = contexto;
         }
 
-        public List<Ativo> ObtemAtivosPorTipoDeAtivo(eTipoDeAtivo tipoDeAtivoID)
+        public List<Ativo> ObtemAtivosPorTipoDeAtivoID(eTipoDeAtivo tipoDeAtivoID)
         {
-#pragma warning disable  // Dereference of a possibly null reference.
-            return ctx.Ativos.Where(ativo => ativo.TipoDeAtivoId == (int)tipoDeAtivoID).ToList();
+             var ativos = _contexto.Ativos
+                    .Where(ativo => ativo.TipoDeAtivoId == (int)tipoDeAtivoID)
+                    .ToList();
+            return ativos;
         }
     }
 }

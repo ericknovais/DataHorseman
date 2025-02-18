@@ -1,7 +1,10 @@
+using DataHorseman.Application.Dtos;
+using DataHorseman.Application.Interfaces;
 using DataHorseman.Domain.Entidades;
 using DataHorseman.Domain.Enums;
 using DataHorseman.Infrastructure.Persistencia.Dtos;
 using DataHorseman.Infrastructure.Persistencia.Repositories;
+using System.ComponentModel.DataAnnotations;
 using System.Threading.Tasks;
 
 namespace DataHorseman.AppWin;
@@ -9,23 +12,30 @@ namespace DataHorseman.AppWin;
 public partial class frmUpload : Form
 {
     protected readonly Repository _repository = new Repository();
+    protected readonly IService _service;
     private IList<TipoContato> _listaTipoContatos;
     private List<Ativo> _acoes;
     private List<Ativo> _fiis;
 
     #region Métodos Do Forms
-    public frmUpload()
+    public frmUpload(IService service)
     {
         _acoes = new List<Ativo>();
         _fiis = new List<Ativo>(); 
         _listaTipoContatos = new List<TipoContato>();
-
+        _service = service;
         InitializeComponent();   
     }
     private async void btnUpload_Click(object sender, EventArgs e)
     {
         await InicializaDadosNoBanco();
         await CarregaListas();
+        //AtivoDto ativo = new AtivoDto();
+        //var tiposDeAtivo = Enum.GetValues(typeof(AtivoDto))
+        //               .Cast<AtivoDto>()
+        //               .ToList();
+
+        var teste = _service.AtivoService.ObtemAtivosPorTipoDeAtivoID(eTipoDeAtivo.Acao); 
         OpenFileDialog ofd = new OpenFileDialog();
         ofd.CheckFileExists = true;
         ofd.Multiselect = false;
@@ -88,9 +98,9 @@ public partial class frmUpload : Form
         var tipoDeAtivos = await _repository.TipoDeAtivo.ObterTodosAsync();
         if (tipoDeAtivos.Count == 0)
             SalvaTipoDeAtivosNoBanco();
-        if (_repository.Ativo.ObtemAtivosPorTipoDeAtivo(eTipoDeAtivo.Acao).Count == 0)
+        if (_repository.Ativo.ObtemAtivosPorTipoDeAtivoID(eTipoDeAtivo.Acao).Count == 0)
             SalvarAtivosNoBancoDeDados(eTipoDeAtivo.Acao);
-        if (_repository.Ativo.ObtemAtivosPorTipoDeAtivo(eTipoDeAtivo.FundoImobiliario).Count == 0)
+        if (_repository.Ativo.ObtemAtivosPorTipoDeAtivoID(eTipoDeAtivo.FundoImobiliario).Count == 0)
             SalvarAtivosNoBancoDeDados(eTipoDeAtivo.FundoImobiliario);
     }
     private async Task CarregaListas()
@@ -121,7 +131,7 @@ public partial class frmUpload : Form
                 ativoJson =>
                     _repository.Ativo.CriarNovoAsync(
 
-                        Ativo.AdicionarNovoAtivo(
+                        Ativo.NovoAtivo(
                             tipoDeAtivoID: tipoDeAtivo,
                             ticker: ativoJson.Ticker,
                             nome: ativoJson.Nome,
@@ -150,7 +160,7 @@ public partial class frmUpload : Form
     #region Métodos com return
     private async Task<List<Ativo>> ObtemListaDeAtivosPorTipoDeAtivo(eTipoDeAtivo idTipoAtivo)
     {
-        return _repository.Ativo.ObtemAtivosPorTipoDeAtivo(idTipoAtivo);
+        return _repository.Ativo.ObtemAtivosPorTipoDeAtivoID(idTipoAtivo);
     }
     #endregion
 }

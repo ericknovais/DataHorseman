@@ -1,5 +1,12 @@
 ﻿namespace DataHorseman.Application.Interfaces;
 
-internal interface IService
+public interface IService
 {
+    void SaveChanges();
+    public IAtivoService AtivoService { get; }
+    public IContatoService ContatoService { get; }
+    public IEnderecoService EnderecoService { get; }
+    public IPessoaService PessoaService { get; }
+    public ITipoContatoService TipoContatoService { get; }
+    public ITipoDeAtivoService TipoDeAtivoService { get; }
 }

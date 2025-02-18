@@ -24,7 +24,7 @@ public class Ativo : EntidadeBase
         base.Valida();
     }
 
-    public static Ativo AdicionarNovoAtivo(eTipoDeAtivo tipoDeAtivoID, string ticker, string nome, decimal ultimaNegociacao)
+    public static Ativo NovoAtivo(eTipoDeAtivo tipoDeAtivoID, string ticker, string nome, decimal ultimaNegociacao)
     {
         Ativo ativo = new Ativo()
         {
@@ -38,6 +38,14 @@ public class Ativo : EntidadeBase
         };
         ativo.Valida();
         return ativo;
+    }
+
+    public void AtualizarAtivo(string ticker, string nome)
+    {
+        Ticker = ticker.Trim();
+        nome = nome.Trim();
+        DataAtualizacao = DateTime.Now;
+        Valida();
     }
 
     public static List<Ativo> ListaDeAtivosAleatoriaEComQuantidadeDeAtivo(List<Ativo> listaAtivo, int quantidade, Random ordenaLista)
