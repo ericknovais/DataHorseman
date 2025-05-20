@@ -10,5 +10,4 @@ public interface IRepository
     public ITipoDeAtivoRepository TipoDeAtivo { get;}
     public IAtivoRepository Ativo { get;}
     public ICarteiraRepository Carteira { get;}
-
 }

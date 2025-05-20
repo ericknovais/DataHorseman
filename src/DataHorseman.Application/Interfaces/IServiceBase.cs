@@ -1,12 +1,12 @@
 ﻿using DataHorseman.Domain.Entidades;
 
-namespace DataHorseman.Domain.Interfaces;
+namespace DataHorseman.Application.Interfaces;
 
-public interface IRepositoryBase<T> where T : EntidadeBase
+public interface IServiceBase<T> where T : class
 {
     Task CriarNovoAsync(T entidade);
-    void Excluir(T entidade);
-    void Atualiza(T entidade);
+    Task Excluir(T entidade);
+    Task Atualiza(T entidade);
     Task<T?> ObterPorIdAsync(int id);
     Task<IList<T>> ObterTodosAsync();
     Task<int> SaveChangesAsync();

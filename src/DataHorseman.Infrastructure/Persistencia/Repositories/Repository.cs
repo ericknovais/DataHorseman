@@ -1,7 +1,7 @@
 ﻿using DataHorseman.Domain.Interfaces;
 using DataHorseman.Infrastructure.Persistencia.DataContext;
 
-namespace DataHorseman.Infrastructure.Persistencia.Repositorios;
+namespace DataHorseman.Infrastructure.Persistencia.Repositories;
 
 public class Repository : IRepository
 {
