@@ -39,7 +39,7 @@ A solução segue uma arquitetura em camadas para separar responsabilidades e me
 ## Configuração
 
 1. Clone o repositório:
-   git clone https://github.com/seu-usuario/seu-repositorio.git
+   git clone https://github.com/ericknovais/DataHorseman.git
 
 2. Abra a solução no Visual Studio.
 
