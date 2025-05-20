@@ -98,4 +98,3 @@ A solução segue uma arquitetura em camadas para separar responsabilidades e me
 ## Licença
 
 Este projeto está licenciado sob a Licença MIT.
-
