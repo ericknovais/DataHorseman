@@ -16,4 +16,9 @@ public class PessoaRepository : RepositoryBase<Pessoa>, IPessoaRepository
     {
         return ctx.Pessoas.FirstOrDefault(pessoa => pessoa.CPF.Equals(cpf));
     }
+
+    public List<Pessoa> VerificaSePessoasJaCadastradas(List<string> cpfs)
+    {
+        return ctx.Pessoas.Where(pessoa => cpfs.Contains(pessoa.CPF)).ToList();
+    }
 }

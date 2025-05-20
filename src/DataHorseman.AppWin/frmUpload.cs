@@ -40,16 +40,15 @@ public partial class frmUpload : Form
     {
         try
         {
-            
+
             IList<PessoaJson>? pessoas = _service.ArquivoService.LerArquivoJson<PessoaJson>(txtArquivo.Text);
 
-            if (pessoas != null && pessoas.Count > 0)
+            if (pessoas != null && pessoas.Any())
             {
-                foreach (PessoaJson pessoaJson in pessoas)
-                {
-                    if (_repository.Pessoa.ObtemPessoaPorCPF(pessoaJson.CPF) != null)
-                        continue;
+                var pessoasFiltradas = FiltrarPessoasNaoCadastradas(pessoas);
 
+                foreach (PessoaJson pessoaJson in pessoasFiltradas)
+                {
                     string[] valoresContatos = { pessoaJson.Email, pessoaJson.Telefone_fixo, pessoaJson.Celular };
                     Pessoa pessoa = new Pessoa(pessoaJson.Nome, pessoaJson.CPF, pessoaJson.RG, pessoaJson.Sexo, Convert.ToDateTime(pessoaJson.Data_nasc));
                     List<Contato> contatos = Contato.ListaDeContatos(pessoa, _listaTipoContatos, valoresContatos);
@@ -69,7 +68,7 @@ public partial class frmUpload : Form
             }
             else
                 MessageBox.Show($"O arquivo {_service.ArquivoService.ObtemNomeDoArquivo(txtArquivo.Text)} não contem dados!", "Atenção", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
-            
+
             txtArquivo.Text = string.Empty;
         }
         catch (Exception ex)
@@ -149,7 +148,26 @@ public partial class frmUpload : Form
     #region Métodos com return
     private async Task<List<AtivoDto>> ObtemListaDeAtivosPorTipoDeAtivo(eTipoDeAtivo idTipoAtivo)
     {
-        return  _service.AtivoService.ObtemAtivosPorTipoDeAtivoID(idTipoAtivo);
+        return _service.AtivoService.ObtemAtivosPorTipoDeAtivoID(idTipoAtivo);
+    }
+
+    public IList<PessoaJson> FiltrarPessoasNaoCadastradas(IList<PessoaJson> pessoas)
+    {
+        var cpfs = pessoas.Select(p => p.CPF).ToList();
+        var pessoasJaCadastradas = _repository.Pessoa.VerificaSePessoasJaCadastradas(cpfs);
+
+        if (pessoasJaCadastradas.Count > 0)
+        {
+            var cpfsJaCadastrados = pessoasJaCadastradas
+                .Select(p => p.CPF)
+                .ToHashSet(); // mais rápido para busca
+
+            pessoas = pessoas
+                .Where(p => !cpfsJaCadastrados.Contains(p.CPF))
+                .ToList();
+        }
+
+        return pessoas;
     }
     #endregion
 }
