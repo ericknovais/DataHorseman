@@ -10,4 +10,9 @@ public interface IService
     public IPessoaService PessoaService { get; }
     public ITipoContatoService TipoContatoService { get; }
     public ITipoDeAtivoService TipoDeAtivoService { get; }
+
+    /// <summary>
+    /// Serviço responsável pela leitura e manipulação de arquivos.
+    /// </summary>
+    public IArquivoService ArquivoService { get; }
 }

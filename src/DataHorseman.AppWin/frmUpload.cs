@@ -40,7 +40,8 @@ public partial class frmUpload : Form
     {
         try
         {
-            IList<PessoaJson>? pessoas = Arquivo.LerArquivoJson<PessoaJson>(txtArquivo.Text);
+            
+            IList<PessoaJson>? pessoas = _service.ArquivoService.LerArquivoJson<PessoaJson>(txtArquivo.Text);
 
             if (pessoas != null && pessoas.Count > 0)
             {
@@ -67,8 +68,8 @@ public partial class frmUpload : Form
                 MessageBox.Show("Cadastro realizado com sucesso!", "Sucesso!", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
             else
-                MessageBox.Show($"O arquivo {Arquivo.ObtemNomeDoArquivo(txtArquivo.Text)} não contem dados!", "Atenção", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
-
+                MessageBox.Show($"O arquivo {_service.ArquivoService.ObtemNomeDoArquivo(txtArquivo.Text)} não contem dados!", "Atenção", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+            
             txtArquivo.Text = string.Empty;
         }
         catch (Exception ex)
@@ -102,13 +103,13 @@ public partial class frmUpload : Form
     {
         if (tipoDeAtivo == eTipoDeAtivo.Acao)
         {
-            IList<AtivoJson>? acoes = Arquivo.LerArquivoJson<AtivoJson>(@"..\..\..\CargaDeAtivos\acoes.json");
+            IList<AtivoJson>? acoes = _service.ArquivoService.LerArquivoJson<AtivoJson>(@"..\..\..\CargaDeAtivos\acoes.json");
             if (acoes != null)
                 SalvaListaDeAtivos(acoes.ToList(), tipoDeAtivo);
         }
         else if (tipoDeAtivo == eTipoDeAtivo.FundoImobiliario)
         {
-            IList<AtivoJson>? fii = Arquivo.LerArquivoJson<AtivoJson>(@"..\..\..\CargaDeAtivos\fiis.json");
+            IList<AtivoJson>? fii = _service.ArquivoService.LerArquivoJson<AtivoJson>(@"..\..\..\CargaDeAtivos\fiis.json");
             if (fii != null)
                 SalvaListaDeAtivos(fii.Where(fii => fii.Ultimo != "0").ToList(), tipoDeAtivo);
         }
