@@ -1,4 +1,4 @@
-﻿namespace DataHorseman.Infrastructure.Persistence.Dtos;
+﻿namespace DataHorseman.Infrastructure.Persistencia.Dtos;
 
 public class PessoaJson
 {

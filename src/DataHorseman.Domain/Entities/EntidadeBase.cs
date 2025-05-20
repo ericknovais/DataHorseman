@@ -1,8 +1,8 @@
 ﻿using System.Text;
 
-namespace DataHorseman.Domain.Entities;
+namespace DataHorseman.Domain.Entidades;
 
-public abstract class EntityBase
+public abstract class EntidadeBase
 {
     public int ID { get; set; }
     public DateTime DataCadastro { get; set; }

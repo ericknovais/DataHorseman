@@ -1,9 +1,9 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
 
-namespace DataHorseman.Domain.Entities;
+namespace DataHorseman.Domain.Entidades;
 
 [Table("TipoDeAtivos")]
-public class TipoDeAtivo : EntityBase
+public class TipoDeAtivo : EntidadeBase
 {
     [DatabaseGenerated(DatabaseGeneratedOption.None)]
     public new int ID { get; set; }

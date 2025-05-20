@@ -1,15 +1,15 @@
-﻿using DataHorseman.Domain.Entities;
+﻿using DataHorseman.Domain.Entidades;
 using Microsoft.EntityFrameworkCore;
 
-namespace DataHorseman.Infrastructure.Persistence;
+namespace DataHorseman.Infrastructure.Persistencia.DataContext;
 
-public class ContextoDataBase : DbContext
+public class DataHorsemanDbContext : DbContext
 {
-    public ContextoDataBase()
+    public DataHorsemanDbContext()
     {
 
     }
-    public ContextoDataBase(DbContextOptions<ContextoDataBase> options) : base(options)
+    public DataHorsemanDbContext(DbContextOptions<DataHorsemanDbContext> options) : base(options)
     {
 
     }

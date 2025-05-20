@@ -1,4 +1,4 @@
-﻿namespace DataHorseman.Domain.Repositories;
+﻿namespace DataHorseman.Domain.Interfaces;
 
 public interface IRepository
 {
@@ -10,5 +10,4 @@ public interface IRepository
     public ITipoDeAtivoRepository TipoDeAtivo { get;}
     public IAtivoRepository Ativo { get;}
     public ICarteiraRepository Carteira { get;}
-
 }

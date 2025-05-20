@@ -1,9 +1,9 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
 
-namespace DataHorseman.Domain.Entities;
+namespace DataHorseman.Domain.Entidades;
 
 [Table("Enderecos")]
-public class Endereco : EntityBase
+public class Endereco : EntidadeBase
 {
     public Endereco()
     {

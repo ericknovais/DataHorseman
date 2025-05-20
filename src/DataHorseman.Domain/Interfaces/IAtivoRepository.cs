@@ -1,8 +1,9 @@
-﻿using DataHorseman.Domain.Entities;
+﻿using DataHorseman.Domain.Entidades;
+using DataHorseman.Domain.Enums;
 
-namespace DataHorseman.Domain.Repositories;
+namespace DataHorseman.Domain.Interfaces;
 
 public interface IAtivoRepository : IRepositoryBase<Ativo>
 {
-    List<Ativo> ObtemAtivosPorTipoDeAtivo(TipoDeAtivo? tipoDeAtivo);
+    List<Ativo> ObtemAtivosPorTipoDeAtivoID(eTipoDeAtivo tipoDeAtivoID);
 }

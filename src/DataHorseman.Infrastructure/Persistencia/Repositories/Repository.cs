@@ -1,14 +1,14 @@
-﻿using DataHorseman.Domain.Repositories;
-using DataHorseman.Infrastructure.Persistence;
+﻿using DataHorseman.Domain.Interfaces;
+using DataHorseman.Infrastructure.Persistencia.DataContext;
 
-namespace DataHorseman.Infrastructure.Intercafes;
+namespace DataHorseman.Infrastructure.Persistencia.Repositories;
 
 public class Repository : IRepository
 {
-    ContextoDataBase ctx;
+    DataHorsemanDbContext ctx;
     public Repository()
     {
-        ctx = new ContextoDataBase();
+        ctx = new DataHorsemanDbContext();
     }
 
     IPessoaRepository? pessoa;
@@ -30,7 +30,7 @@ public class Repository : IRepository
     public IAtivoRepository Ativo { get { return ativo ?? (ativo = new AtivoRepository(ctx)); } }
 
     ICarteiraRepository? carteira;
-    public ICarteiraRepository Carteira  {get { return carteira ?? (carteira = new CarteiraRepository(ctx)); } }
+    public ICarteiraRepository Carteira { get { return carteira ?? (carteira = new CarteiraRepository(ctx)); } }
 
     public void SaveChanges()
     {

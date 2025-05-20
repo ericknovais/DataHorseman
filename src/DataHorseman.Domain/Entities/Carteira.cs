@@ -1,33 +1,41 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
 
-namespace DataHorseman.Domain.Entities
+namespace DataHorseman.Domain.Entidades
 {
     [Table("Carteiras")]
-    public class Carteira : EntityBase
+    public class Carteira : EntidadeBase
     {
-        public Carteira()
-        {
-            Pessoa = new Pessoa();
-            Ativo = new Ativo();
-        }
+        //public Carteira(Pessoa pessoa, Ativo ativo, double valorPorAtivo)
+        //{
+        //    Pessoa = pessoa;
+        //    Ativo = ativo;
+        //    Cota = Carteira.QuantidadeDeUmAtivo(valorPorAtivo, (double)ativo.UltimaNegociacao);
+        //    DataCadastro = DateTime.Now;
+        //    DataAtualizacao = DateTime.Now;
+        //}
 
-        public Carteira(Pessoa pessoa, Ativo ativo, double valorPorAtivo)
-        {
-            Pessoa = pessoa;
-            Ativo = ativo;
-            Cota = Carteira.QuantidadeDeUmAtivo(valorPorAtivo, (double)ativo.UltimaNegociacao);
-            DataCadastro = DateTime.Now;
-            DataAtualizacao = DateTime.Now;
-        }
-
-        public Pessoa Pessoa { get; set; }
-        public Ativo Ativo { get; set; }
+        public Pessoa Pessoa { get; set; } = new Pessoa();
+        public Ativo Ativo { get; set; } = new Ativo();
         public int Cota { get; set; }
 
         public override void Valida()
         {
             ValidaCampoNumerico(Cota, "Cota");
             base.Valida();
+        }
+
+        public static Carteira NovaCarteira(Pessoa pessoa, Ativo ativo, double valorPorAtivo)
+        {
+            var cota = Carteira.QuantidadeDeUmAtivo(valorPorAtivo, (double)ativo.UltimaNegociacao);
+            Carteira carteira = new Carteira()
+            {
+                Pessoa = pessoa,
+                Ativo = ativo,
+                Cota = cota,
+                DataCadastro = DateTime.Now,
+                DataAtualizacao = DateTime.Now
+            };
+            return carteira;
         }
 
         public static int InicializaValorInicialDaPessoa()

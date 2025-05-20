@@ -1,11 +1,6 @@
-﻿using DataHorseman.Domain.Entities;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using DataHorseman.Domain.Entidades;
 
-namespace DataHorseman.Domain.Repositories
+namespace DataHorseman.Domain.Interfaces
 {
     public interface ITipoDeAtivoRepository : IRepositoryBase<TipoDeAtivo>
     {
