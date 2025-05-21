@@ -4,8 +4,6 @@ using DataHorseman.Domain.Entidades;
 using DataHorseman.Domain.Enums;
 using DataHorseman.Infrastructure.Persistencia.Dtos;
 using DataHorseman.Infrastructure.Persistencia.Repositories;
-using System.ComponentModel.DataAnnotations;
-using System.Threading.Tasks;
 
 namespace DataHorseman.AppWin;
 
@@ -115,18 +113,17 @@ public partial class frmUpload : Form
     }
     private void SalvaListaDeAtivos(List<AtivoJson> ativos, eTipoDeAtivo tipoDeAtivo)
     {
-        ativos.ForEach(
-                ativoJson =>
-                    _repository.Ativo.CriarNovoAsync(
-
-                        Ativo.NovoAtivo(
-                            tipoDeAtivoID: tipoDeAtivo,
-                            ticker: ativoJson.Ticker,
-                            nome: ativoJson.Nome,
-                            ultimaNegociacao: Convert.ToDecimal($"{ativoJson.Ultimo},{ativoJson.Decimal}")
-                        )
-                    )
+        IEnumerable<Ativo> novosAtivos = ativos.Select(ativoJson =>
+            Ativo.NovoAtivo(
+                tipoDeAtivoID: tipoDeAtivo,
+                ticker: ativoJson.Ticker,
+                nome: ativoJson.Nome,
+                ultimaNegociacao: Convert.ToDecimal($"{ativoJson.Ultimo},{ativoJson.Decimal}")
+            )
         );
+
+        // Cria os novos ativos em lote
+        _repository.Ativo.CriarEmLoteAsync(novosAtivos);
         _repository.SaveChanges();
     }
     private void SalvaTipoDeAtivosNoBanco()
