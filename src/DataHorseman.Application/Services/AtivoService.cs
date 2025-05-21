@@ -93,4 +93,22 @@ public class AtivoService : IAtivoService
     }
 
     public async Task<int> SaveChangesAsync() => await _ativoRepository.SaveChangesAsync();
+
+    public async Task CriarEmLoteAsync(IEnumerable<AtivoDto> entidades)
+    {
+        if (entidades == null || !entidades.Any())
+            return;
+
+        var ativos = entidades.Select(ativo =>
+         Ativo.NovoAtivo(
+             tipoDeAtivoID: ativo.TipoDeAtivoId,
+             ticker: ativo.Ticker,
+             nome: ativo.Nome,
+             ultimaNegociacao: ativo.UltimaNegociacao
+            )
+        );
+
+        await _ativoRepository.CriarEmLoteAsync(ativos);
+        await _ativoRepository.SaveChangesAsync();
+    }
 }

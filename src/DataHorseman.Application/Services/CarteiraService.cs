@@ -21,6 +21,11 @@ public class CarteiraService : ICarteiraService
         throw new NotImplementedException();
     }
 
+    public Task CriarEmLoteAsync(IEnumerable<CarteiraDto> entidades)
+    {
+        throw new NotImplementedException();
+    }
+
     public async Task CriarNovasCarteirasLote(CarteiraDto entidade)
     {
         if (entidade is null)

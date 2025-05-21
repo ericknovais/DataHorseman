@@ -1,3 +1,4 @@
+using AutoMapper;
 using DataHorseman.Application.Dtos;
 using DataHorseman.Application.Interfaces;
 using DataHorseman.Domain.Entidades;
@@ -14,6 +15,7 @@ public partial class frmUpload : Form
     private IList<TipoContato> _listaTipoContatos;
     private List<AtivoDto> _acoes;
     private List<AtivoDto> _fiis;
+    protected readonly IMapper _mapper;
 
     #region Métodos Do Forms
     public frmUpload(IService service)
@@ -38,7 +40,6 @@ public partial class frmUpload : Form
     {
         try
         {
-
             IList<PessoaJson>? pessoas = _service.ArquivoService.LerArquivoJson<PessoaJson>(txtArquivo.Text);
 
             if (pessoas != null && pessoas.Any())
@@ -55,11 +56,13 @@ public partial class frmUpload : Form
                     CarteiraDto carteiraDtoLote = CarteiraDto.NovaCarteiraDto(pessoa, _acoes, _fiis);
 
                     await _repository.Pessoa.CriarNovoAsync(pessoa);
-                    contatos.ForEach(contato => _repository.Contato.CriarNovoAsync(contato));
+                    //contatos.ForEach(contato => _repository.Contato.CriarNovoAsync(contato));
+                    await _repository.Contato.CriarEmLoteAsync(contatos);
                     await _repository.Endereco.CriarNovoAsync(endereco);
 
                     await _service.CarteiraService.CriarNovasCarteirasLote(carteiraDtoLote);
                     _service.SaveChanges();
+                    //_repository.SaveChanges();
                 }
 
                 MessageBox.Show("Cadastro realizado com sucesso!", "Sucesso!", MessageBoxButtons.OK, MessageBoxIcon.Information);
@@ -96,35 +99,32 @@ public partial class frmUpload : Form
         _acoes = await ObtemListaDeAtivosPorTipoDeAtivo(eTipoDeAtivo.Acao);
         _fiis = await ObtemListaDeAtivosPorTipoDeAtivo(eTipoDeAtivo.FundoImobiliario);
     }
-    private void SalvarAtivosNoBancoDeDados(eTipoDeAtivo tipoDeAtivo)
+    private async void SalvarAtivosNoBancoDeDados(eTipoDeAtivo tipoDeAtivo)
     {
         if (tipoDeAtivo == eTipoDeAtivo.Acao)
         {
             IList<AtivoJson>? acoes = _service.ArquivoService.LerArquivoJson<AtivoJson>(@"..\..\..\CargaDeAtivos\acoes.json");
             if (acoes != null)
-                SalvaListaDeAtivos(acoes.ToList(), tipoDeAtivo);
+                await SalvaListaDeAtivos(acoes.ToList(), tipoDeAtivo);
         }
         else if (tipoDeAtivo == eTipoDeAtivo.FundoImobiliario)
         {
             IList<AtivoJson>? fii = _service.ArquivoService.LerArquivoJson<AtivoJson>(@"..\..\..\CargaDeAtivos\fiis.json");
             if (fii != null)
-                SalvaListaDeAtivos(fii.Where(fii => fii.Ultimo != "0").ToList(), tipoDeAtivo);
+                await SalvaListaDeAtivos(fii.Where(fii => fii.Ultimo != "0").ToList(), tipoDeAtivo);
         }
     }
-    private void SalvaListaDeAtivos(List<AtivoJson> ativos, eTipoDeAtivo tipoDeAtivo)
+    private async Task SalvaListaDeAtivos(List<AtivoJson> ativos, eTipoDeAtivo tipoDeAtivo)
     {
-        IEnumerable<Ativo> novosAtivos = ativos.Select(ativoJson =>
-            Ativo.NovoAtivo(
-                tipoDeAtivoID: tipoDeAtivo,
-                ticker: ativoJson.Ticker,
-                nome: ativoJson.Nome,
-                ultimaNegociacao: Convert.ToDecimal($"{ativoJson.Ultimo},{ativoJson.Decimal}")
-            )
-        );
+        var ativosDTO = ativos.Select(ativoJson => new AtivoDto
+        {
+            TipoDeAtivoId = tipoDeAtivo,
+            Ticker = ativoJson.Ticker,
+            Nome = ativoJson.Nome,
+            UltimaNegociacao = Convert.ToDecimal($"{ativoJson.Ultimo},{ativoJson.Decimal}")
+        }).ToList();
 
-        // Cria os novos ativos em lote
-        _repository.Ativo.CriarEmLoteAsync(novosAtivos);
-        _repository.SaveChanges();
+        await _service.AtivoService.CriarEmLoteAsync(ativosDTO);
     }
     private void SalvaTipoDeAtivosNoBanco()
     {
