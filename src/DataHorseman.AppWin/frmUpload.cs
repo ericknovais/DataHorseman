@@ -44,18 +44,26 @@ public partial class frmUpload : Form
 
             if (pessoas != null && pessoas.Any())
             {
-                var pessoasFiltradas = FiltrarPessoasNaoCadastradas(pessoas);
+                var pessoasFiltradas = ObterSomentePessoasNaoCadastradas(pessoas);
 
                 foreach (PessoaJson pessoaJson in pessoasFiltradas)
                 {
                     string[] valoresContatos = { pessoaJson.Email, pessoaJson.Telefone_fixo, pessoaJson.Celular };
-                    Pessoa pessoa = new Pessoa(pessoaJson.Nome, pessoaJson.CPF, pessoaJson.RG, pessoaJson.Sexo, Convert.ToDateTime(pessoaJson.Data_nasc));
+                    Pessoa pessoa = Pessoa.Novo(pessoaJson.Nome, pessoaJson.CPF, pessoaJson.RG, pessoaJson.Sexo, Convert.ToDateTime(pessoaJson.Data_nasc));
+                    PessoaDto pessoaDto = new PessoaDto
+                    {
+                        Nome = pessoaJson.Nome,
+                        CPF = pessoaJson.CPF,
+                        RG = pessoaJson.RG,
+                        Sexo = pessoaJson.Sexo,
+                        DataNascimento = Convert.ToDateTime(pessoaJson.Data_nasc)
+                    };
                     List<Contato> contatos = Contato.ListaDeContatos(pessoa, _listaTipoContatos, valoresContatos);
                     Endereco endereco = new Endereco(pessoa, pessoaJson.CEP, pessoaJson.Endereco, pessoaJson.Numero, pessoaJson.Bairro, pessoaJson.Cidade, pessoaJson.Estado);
 
                     CarteiraDto carteiraDtoLote = CarteiraDto.NovaCarteiraDto(pessoa, _acoes, _fiis);
 
-                    await _repository.Pessoa.CriarNovoAsync(pessoa);
+                    await _service.PessoaService.CriarNovoAsync(pessoaDto);
                     //contatos.ForEach(contato => _repository.Contato.CriarNovoAsync(contato));
                     await _repository.Contato.CriarEmLoteAsync(contatos);
                     await _repository.Endereco.CriarNovoAsync(endereco);
@@ -148,12 +156,15 @@ public partial class frmUpload : Form
         return _service.AtivoService.ObtemAtivosPorTipoDeAtivoID(idTipoAtivo);
     }
 
-    public IList<PessoaJson> FiltrarPessoasNaoCadastradas(IList<PessoaJson> pessoas)
+    public IList<PessoaJson> ObterSomentePessoasNaoCadastradas(IList<PessoaJson> pessoas)
     {
-        var cpfs = pessoas.Select(p => p.CPF).ToList();
-        var pessoasJaCadastradas = _repository.Pessoa.VerificaSePessoasJaCadastradas(cpfs);
+        if (pessoas is null || !pessoas.Any())
+            return new List<PessoaJson>();
 
-        if (pessoasJaCadastradas.Count > 0)
+        var cpfs = pessoas.Select(p => p.CPF).ToList();
+        var pessoasJaCadastradas = _service.PessoaService.VerificaSePessoasJaCadastradas(cpfs);
+
+        if (pessoasJaCadastradas.Any())
         {
             var cpfsJaCadastrados = pessoasJaCadastradas
                 .Select(p => p.CPF)

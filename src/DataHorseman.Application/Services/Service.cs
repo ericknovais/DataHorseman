@@ -16,6 +16,7 @@ public class Service : IService
 
         AtivoService = new AtivoService(_repository.Ativo, _mapper);
         CarteiraService = new CarteiraService(_repository.Carteira, _mapper);
+        PessoaService = new PessoaService(_repository.Pessoa, _mapper);
         ArquivoService = new ArquivoService();
     }
 
@@ -25,7 +26,7 @@ public class Service : IService
 
     public IEnderecoService EnderecoService => throw new NotImplementedException();
 
-    public IPessoaService PessoaService => throw new NotImplementedException();
+    public IPessoaService PessoaService { get; }
 
     public ITipoContatoService TipoContatoService => throw new NotImplementedException();
 

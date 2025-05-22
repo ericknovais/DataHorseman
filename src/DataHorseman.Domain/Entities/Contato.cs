@@ -69,6 +69,6 @@ public class Contato : EntidadeBase
     private void ValidaEmail()
     {
         if (!Valor.Contains("@"))
-            _msgErro.Append($"E-mail com formato invalido! {Environment.NewLine}");
+            AdicionarErro($"E-mail com formato invalido! {Environment.NewLine}");
     }
 }

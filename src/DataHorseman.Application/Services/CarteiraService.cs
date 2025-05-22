@@ -16,7 +16,7 @@ public class CarteiraService : ICarteiraService
         _mapper = mapper;
     }
 
-    public Task Atualiza(CarteiraDto entidade)
+    public Task AtualizaAsync(CarteiraDto entidade)
     {
         throw new NotImplementedException();
     }
@@ -64,7 +64,7 @@ public class CarteiraService : ICarteiraService
         throw new NotImplementedException();
     }
 
-    public Task Excluir(CarteiraDto entidade)
+    public Task ExcluirAsync(CarteiraDto entidade)
     {
         throw new NotImplementedException();
     }
