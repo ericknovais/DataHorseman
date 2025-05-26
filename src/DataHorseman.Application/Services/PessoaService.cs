@@ -101,7 +101,7 @@ public class PessoaService : IPessoaService
         return await _repository.VerificaSePessoasJaCadastradasAsync(cpfs);
     }
 
-    public async Task<IList<Pessoa>> FiltrarPessoasNaoCadastradas(IList<PessoaDto> pessoas)
+    public async Task<IList<Pessoa>> FiltrarPessoasNaoCadastradas(IList<Pessoa> pessoas)
     {
         var cpfs = pessoas.Select(p => p.CPF).ToList();
         var pessoasJaCadastradas =  await _repository.VerificaSePessoasJaCadastradasAsync(cpfs);

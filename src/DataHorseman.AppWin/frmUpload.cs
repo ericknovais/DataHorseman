@@ -197,7 +197,7 @@ public partial class frmUpload : Form
         try
         {
             IList<PessoaJson> pessoas = CarregaPessoasDoArquivo();
-            IList<PessoaJson> pessoasFiltradas = await ObterSomentePessoasNaoCadastradas(pessoas);
+            IList<PessoaJson> pessoasFiltradas = await FiltraSomentePessoasNaoCadastradas(pessoas);
             List<string> pessoasComErro = await ProcessarPessoasAsync(pessoasFiltradas);
             ExibirMensagemCadastro(pessoasComErro);
         }
@@ -240,26 +240,37 @@ public partial class frmUpload : Form
             throw new Exception($"O arquivo {_service.ArquivoService.ObtemNomeDoArquivo(txtArquivo.Text)} não contem dados!");
         return pessoas;
     }
-    public async Task<IList<PessoaJson>> ObterSomentePessoasNaoCadastradas(IList<PessoaJson> pessoas)
+    public async Task<IList<PessoaJson>> FiltraSomentePessoasNaoCadastradas(IList<PessoaJson> pessoasJson)
     {
-        if (pessoas is null || !pessoas.Any())
+        if (pessoasJson is null || !pessoasJson.Any())
             return new List<PessoaJson>();
 
-        var cpfs = pessoas.Select(p => p.CPF).ToList();
-        var pessoasJaCadastradas = await _service.PessoaService.VerificaSePessoasJaCadastradasAsync(cpfs);
-
-        if (pessoasJaCadastradas.Any())
+        var pessoas = pessoasJson
+            .Where(p => DateTime.TryParse(p.Data_nasc, out _)) // filtra só os válidos
+            .Select(p =>
         {
-            var cpfsJaCadastrados = pessoasJaCadastradas
-                .Select(p => p.CPF)
-                .ToHashSet(); // mais rápido para busca
+            DateTime.TryParse(p.Data_nasc, out DateTime dataNascimento);
+            return Pessoa.Novo(
+             nome: p.Nome,
+             cpf: p.CPF,
+             rg: p.RG,
+             sexo: p.Sexo,
+             dataNascimento: dataNascimento);
+        }).ToList();
 
-            pessoas = pessoas
-                .Where(p => !cpfsJaCadastrados.Contains(p.CPF))
-                .ToList();
-        }
+        var pessoasNaoCadastradas = await _service.PessoaService.FiltrarPessoasNaoCadastradas(pessoas);
 
-        return pessoas;
+        // mapeia de volta pra PessoaJson, se precisar
+        var resultado = pessoasNaoCadastradas.Select(p => new PessoaJson
+        {
+            Nome = p.Nome,
+            CPF = p.CPF,
+            RG = p.RG,
+            Sexo = p.Sexo,
+            Data_nasc = p.DataNascimento.ToString("yyyy-MM-dd") // ou o formato que você usa
+        }).ToList();
+
+        return resultado;
     }
     #endregion
 }
