@@ -5,5 +5,5 @@ namespace DataHorseman.Domain.Interfaces;
 
 public interface IAtivoRepository : IRepositoryBase<Ativo>
 {
-    List<Ativo> ObtemAtivosPorTipoDeAtivoID(eTipoDeAtivo tipoDeAtivoID);
+   Task<List<Ativo>> ObtemAtivosPorTipoDeAtivoID(eTipoDeAtivo tipoDeAtivoID);
 }

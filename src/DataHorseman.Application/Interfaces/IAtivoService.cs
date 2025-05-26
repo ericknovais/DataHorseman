@@ -6,5 +6,5 @@ namespace DataHorseman.Application.Interfaces;
 
 public interface IAtivoService : IServiceBase<AtivoDto>
 {
-    List<AtivoDto> ObtemAtivosPorTipoDeAtivoID(eTipoDeAtivo tipoDeAtivoID);
+   Task<List<AtivoDto>> ObtemAtivosPorTipoDeAtivoID(eTipoDeAtivo tipoDeAtivoID);
 }

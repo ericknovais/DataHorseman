@@ -52,11 +52,11 @@ public class AtivoService : IAtivoService
         await _ativoRepository.SaveChangesAsync();
     }
 
-    public List<AtivoDto> ObtemAtivosPorTipoDeAtivoID(eTipoDeAtivo tipoDeAtivoID)
+    public async Task<List<AtivoDto>> ObtemAtivosPorTipoDeAtivoID(eTipoDeAtivo tipoDeAtivoID)
     {
         ValidacoesService.ValidaIdMaiorQueZero((int)tipoDeAtivoID);
 
-        var ativos = _ativoRepository.ObtemAtivosPorTipoDeAtivoID(tipoDeAtivoID);
+        var ativos = await _ativoRepository.ObtemAtivosPorTipoDeAtivoID(tipoDeAtivoID);
         if (ativos is null || !ativos.Any())
             return new List<AtivoDto>();
 

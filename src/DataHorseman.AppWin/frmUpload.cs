@@ -66,14 +66,13 @@ public partial class frmUpload : Form
                     pessoasComErro.Add(pessoaJson.Nome);
                 }
             }
-
             ExibirMensagemCadastro(pessoasComErro);
         }
         catch (Exception ex)
         {
             MessageBox.Show(ex.Message, "Atenção", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
         }
-        finally 
+        finally
         {
             txtArquivo.Text = string.Empty;
         }
@@ -131,15 +130,20 @@ public partial class frmUpload : Form
     private async Task InicializaDadosNoBanco()
     {
         var tipoContatos = await _repository.TipoContato.ObterTodosAsync();
-        if (tipoContatos.Count == 0)
+        if (!tipoContatos.Any())
             SalvaTipoDeContatosNoBanco();
+
         var tipoDeAtivos = await _repository.TipoDeAtivo.ObterTodosAsync();
-        if (tipoDeAtivos.Count == 0)
+        if (!tipoDeAtivos.Any())
             SalvaTipoDeAtivosNoBanco();
-        if (_service.AtivoService.ObtemAtivosPorTipoDeAtivoID(eTipoDeAtivo.Acao).Count == 0)
-            SalvarAtivosNoBancoDeDados(eTipoDeAtivo.Acao);
-        if (_service.AtivoService.ObtemAtivosPorTipoDeAtivoID(eTipoDeAtivo.FundoImobiliario).Count == 0)
-            SalvarAtivosNoBancoDeDados(eTipoDeAtivo.FundoImobiliario);
+
+        var acoes = await _service.AtivoService.ObtemAtivosPorTipoDeAtivoID(eTipoDeAtivo.Acao);
+        if (!acoes.Any())
+            await SalvarAtivosNoBancoDeDados(eTipoDeAtivo.Acao);
+
+        var fiis = await _service.AtivoService.ObtemAtivosPorTipoDeAtivoID(eTipoDeAtivo.FundoImobiliario);
+        if (!fiis.Any())
+            await SalvarAtivosNoBancoDeDados(eTipoDeAtivo.FundoImobiliario);
     }
     private async Task CarregaListas()
     {
@@ -147,7 +151,7 @@ public partial class frmUpload : Form
         _acoes = await ObtemListaDeAtivosPorTipoDeAtivo(eTipoDeAtivo.Acao);
         _fiis = await ObtemListaDeAtivosPorTipoDeAtivo(eTipoDeAtivo.FundoImobiliario);
     }
-    private async void SalvarAtivosNoBancoDeDados(eTipoDeAtivo tipoDeAtivo)
+    private async Task SalvarAtivosNoBancoDeDados(eTipoDeAtivo tipoDeAtivo)
     {
         if (tipoDeAtivo == eTipoDeAtivo.Acao)
         {
@@ -193,7 +197,7 @@ public partial class frmUpload : Form
     #region Métodos com return
     private async Task<List<AtivoDto>> ObtemListaDeAtivosPorTipoDeAtivo(eTipoDeAtivo idTipoAtivo)
     {
-        return _service.AtivoService.ObtemAtivosPorTipoDeAtivoID(idTipoAtivo);
+        return await _service.AtivoService.ObtemAtivosPorTipoDeAtivoID(idTipoAtivo);
     }
 
     public IList<PessoaJson> ObterSomentePessoasNaoCadastradas(IList<PessoaJson> pessoas)
