@@ -112,6 +112,7 @@ public class PessoaService : IPessoaService
                 .Select(p => p.CPF)
                 .ToHashSet(); // mais rápido para busca
 
+            //Remove pessoas já cadastradas no sistema
             pessoas = pessoas
                 .Where(p => !cpfsJaCadastrados.Contains(p.CPF))
                 .ToList();
@@ -122,6 +123,6 @@ public class PessoaService : IPessoaService
 
     Task IServiceBase<PessoaDto>.CriarNovoAsync(PessoaDto entidade)
     {
-        throw new NotImplementedException();
+        return CriarNovoAsync(entidade); // descarta retorno
     }
 }
