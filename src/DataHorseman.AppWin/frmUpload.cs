@@ -1,11 +1,10 @@
-using AutoMapper;
 using DataHorseman.Application.Dtos;
 using DataHorseman.Application.Interfaces;
 using DataHorseman.Domain.Entidades;
 using DataHorseman.Domain.Enums;
 using DataHorseman.Infrastructure.Persistencia.Dtos;
 using DataHorseman.Infrastructure.Persistencia.Repositories;
-using Microsoft.EntityFrameworkCore;
+using System.Globalization;
 
 namespace DataHorseman.AppWin;
 
@@ -16,7 +15,6 @@ public partial class frmUpload : Form
     private IList<TipoContato> _listaTipoContatos;
     private List<AtivoDto> _acoes;
     private List<AtivoDto> _fiis;
-    protected readonly IMapper _mapper;
 
     #region Métodos Do Forms
     public frmUpload(IService service)
@@ -43,7 +41,6 @@ public partial class frmUpload : Form
         var pessoas = _service.ArquivoService.LerArquivoJson<PessoaJson>(txtArquivo.Text);
         if (pessoas == null || !pessoas.Any())
             throw new Exception($"O arquivo {_service.ArquivoService.ObtemNomeDoArquivo(txtArquivo.Text)} não contem dados!");
-
         return pessoas;
     }
 
@@ -70,24 +67,23 @@ public partial class frmUpload : Form
         }
         catch (Exception ex)
         {
-            MessageBox.Show(ex.Message, "Atenção", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+            MensagemDeErro(ex.Message);
         }
         finally
         {
             txtArquivo.Text = string.Empty;
         }
     }
+
     private void ExibirMensagemCadastro(List<string> pessoasComErro)
     {
         if (pessoasComErro.Any())
         {
-            string mensagemErro = "As seguintes pessoas não foram cadastradas:\n" + string.Join("\n", pessoasComErro);
-            MessageBox.Show(mensagemErro, "Atenção", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+            string mensagemErro = $"As seguintes pessoas não foram cadastradas:{Environment.NewLine}{string.Join(Environment.NewLine, pessoasComErro)}";
+            MensagemDeErro(mensagemErro);
         }
         else
-        {
             MessageBox.Show("Todas as pessoas foram cadastradas com sucesso!", "Sucesso!", MessageBoxButtons.OK, MessageBoxIcon.Information);
-        }
     }
     private async Task ProcessarPessoaAsync(PessoaJson pessoaJson)
     {
@@ -129,53 +125,78 @@ public partial class frmUpload : Form
     #region Métodos void
     private async Task InicializaDadosNoBanco()
     {
-        var tipoContatos = await _repository.TipoContato.ObterTodosAsync();
-        if (!tipoContatos.Any())
-            SalvaTipoDeContatosNoBanco();
+        try
+        {
+            var tipoContatos = await _repository.TipoContato.ObterTodosAsync();
+            if (!tipoContatos.Any())
+                SalvaTipoDeContatosNoBanco();
 
-        var tipoDeAtivos = await _repository.TipoDeAtivo.ObterTodosAsync();
-        if (!tipoDeAtivos.Any())
-            SalvaTipoDeAtivosNoBanco();
+            var tipoDeAtivos = await _repository.TipoDeAtivo.ObterTodosAsync();
+            if (!tipoDeAtivos.Any())
+                SalvaTipoDeAtivosNoBanco();
 
-        var acoes = await _service.AtivoService.ObtemAtivosPorTipoDeAtivoID(eTipoDeAtivo.Acao);
-        if (!acoes.Any())
-            await SalvarAtivosNoBancoDeDados(eTipoDeAtivo.Acao);
+            var acoes = await _service.AtivoService.ObtemAtivosPorTipoDeAtivoID(eTipoDeAtivo.Acao);
+            if (!acoes.Any())
+                await SalvarAtivosNoBancoDeDados(eTipoDeAtivo.Acao);
 
-        var fiis = await _service.AtivoService.ObtemAtivosPorTipoDeAtivoID(eTipoDeAtivo.FundoImobiliario);
-        if (!fiis.Any())
-            await SalvarAtivosNoBancoDeDados(eTipoDeAtivo.FundoImobiliario);
+            var fiis = await _service.AtivoService.ObtemAtivosPorTipoDeAtivoID(eTipoDeAtivo.FundoImobiliario);
+            if (!fiis.Any())
+                await SalvarAtivosNoBancoDeDados(eTipoDeAtivo.FundoImobiliario);
+        }
+        catch (Exception ex)
+        {
+            MensagemDeErro(ex.Message);
+        }
     }
+
+    private void MensagemDeErro(string mensagem)
+    {
+        MessageBox.Show(mensagem, "Atenção", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+    }
+
     private async Task CarregaListas()
     {
         _listaTipoContatos = await _repository.TipoContato.ObterTodosAsync();
         _acoes = await ObtemListaDeAtivosPorTipoDeAtivo(eTipoDeAtivo.Acao);
         _fiis = await ObtemListaDeAtivosPorTipoDeAtivo(eTipoDeAtivo.FundoImobiliario);
     }
+
     private async Task SalvarAtivosNoBancoDeDados(eTipoDeAtivo tipoDeAtivo)
     {
-        if (tipoDeAtivo == eTipoDeAtivo.Acao)
+        string caminhoArquivo = tipoDeAtivo switch
         {
-            IList<AtivoJson>? acoes = _service.ArquivoService.LerArquivoJson<AtivoJson>(@"..\..\..\CargaDeAtivos\acoes.json");
-            if (acoes != null)
-                await SalvaListaDeAtivos(acoes.ToList(), tipoDeAtivo);
-        }
-        else if (tipoDeAtivo == eTipoDeAtivo.FundoImobiliario)
+            eTipoDeAtivo.Acao => @"..\..\..\CargaDeAtivos\acoes.json",
+            eTipoDeAtivo.FundoImobiliario => @"..\..\..\CargaDeAtivos\fiis.json",
+            _ => throw new ArgumentOutOfRangeException(nameof(tipoDeAtivo), "Tipo de ativo não suportado.")
+        };
+
+        IList<AtivoJson>? ativos = _service.ArquivoService.LerArquivoJson<AtivoJson>(caminhoArquivo);
+        if (ativos != null)
         {
-            IList<AtivoJson>? fii = _service.ArquivoService.LerArquivoJson<AtivoJson>(@"..\..\..\CargaDeAtivos\fiis.json");
-            if (fii != null)
-                await SalvaListaDeAtivos(fii.Where(fii => fii.Ultimo != "0").ToList(), tipoDeAtivo);
+            // Filtro específico para FIIs
+            if (tipoDeAtivo == eTipoDeAtivo.FundoImobiliario)
+                ativos = ativos.Where(a => a.Ultimo != "0").ToList();
+
+            await SalvaListaDeAtivos(ativos.ToList(), tipoDeAtivo);
         }
     }
+
     private async Task SalvaListaDeAtivos(List<AtivoJson> ativos, eTipoDeAtivo tipoDeAtivo)
     {
-        var ativosDTO = ativos.Select(ativoJson => new AtivoDto
-        {
-            TipoDeAtivoId = tipoDeAtivo,
-            Ticker = ativoJson.Ticker,
-            Nome = ativoJson.Nome,
-            UltimaNegociacao = Convert.ToDecimal($"{ativoJson.Ultimo},{ativoJson.Decimal}")
-        }).ToList();
+        var cultura = new CultureInfo("pt-BR");
 
+        var ativosDTO = ativos.Select(ativoJson =>
+        {
+            decimal valor = 0;
+            decimal.TryParse($"{ativoJson.Ultimo},{ativoJson.Decimal}", NumberStyles.Any, cultura, out valor);
+            return new AtivoDto
+            {
+                TipoDeAtivoId = tipoDeAtivo,
+                Ticker = ativoJson.Ticker,
+                Nome = ativoJson.Nome,
+                UltimaNegociacao = valor
+            };
+        }).ToList();
         await _service.AtivoService.CriarEmLoteAsync(ativosDTO);
     }
     private void SalvaTipoDeAtivosNoBanco()
