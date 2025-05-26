@@ -36,8 +36,8 @@ public class Service : IService
 
     public IArquivoService ArquivoService { get; }
 
-    public void SaveChanges()
-    {
-        _repository.SaveChanges();
-    }
+    public async Task BeginTransactionAsync() => await _repository.BeginTransactionAsync();
+    public async Task CommitTransactionAsync() => await _repository.CommitTransactionAsync();
+    public async Task RollbackTransactionAsync() => await _repository.RollbackTransactionAsync();
+    public void SaveChanges() => _repository.SaveChanges();
 }

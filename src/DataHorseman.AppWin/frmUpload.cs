@@ -5,6 +5,7 @@ using DataHorseman.Domain.Entidades;
 using DataHorseman.Domain.Enums;
 using DataHorseman.Infrastructure.Persistencia.Dtos;
 using DataHorseman.Infrastructure.Persistencia.Repositories;
+using Microsoft.EntityFrameworkCore;
 
 namespace DataHorseman.AppWin;
 
@@ -36,53 +37,92 @@ public partial class frmUpload : Form
         if (ofd.ShowDialog() == DialogResult.OK)
             txtArquivo.Text = ofd.FileName;
     }
+
+    private IList<PessoaJson> CarregaPessoasDoArquivo()
+    {
+        var pessoas = _service.ArquivoService.LerArquivoJson<PessoaJson>(txtArquivo.Text);
+        if (pessoas == null || !pessoas.Any())
+            throw new Exception($"O arquivo {_service.ArquivoService.ObtemNomeDoArquivo(txtArquivo.Text)} não contem dados!");
+
+        return pessoas;
+    }
+
     private async void btnSalvar_Click(object sender, EventArgs e)
     {
         try
         {
-            IList<PessoaJson>? pessoas = _service.ArquivoService.LerArquivoJson<PessoaJson>(txtArquivo.Text);
+            IList<PessoaJson> pessoas = CarregaPessoasDoArquivo();
+            var pessoasFiltradas = ObterSomentePessoasNaoCadastradas(pessoas);
+            var pessoasComErro = new List<string>();
 
-            if (pessoas != null && pessoas.Any())
+            foreach (PessoaJson pessoaJson in pessoasFiltradas)
             {
-                var pessoasFiltradas = ObterSomentePessoasNaoCadastradas(pessoas);
-
-                foreach (PessoaJson pessoaJson in pessoasFiltradas)
+                try
                 {
-                    string[] valoresContatos = { pessoaJson.Email, pessoaJson.Telefone_fixo, pessoaJson.Celular };
-                    Pessoa pessoa = Pessoa.Novo(pessoaJson.Nome, pessoaJson.CPF, pessoaJson.RG, pessoaJson.Sexo, Convert.ToDateTime(pessoaJson.Data_nasc));
-                    PessoaDto pessoaDto = new PessoaDto
-                    {
-                        Nome = pessoaJson.Nome,
-                        CPF = pessoaJson.CPF,
-                        RG = pessoaJson.RG,
-                        Sexo = pessoaJson.Sexo,
-                        DataNascimento = Convert.ToDateTime(pessoaJson.Data_nasc)
-                    };
-                    List<Contato> contatos = Contato.ListaDeContatos(pessoa, _listaTipoContatos, valoresContatos);
-                    Endereco endereco = new Endereco(pessoa, pessoaJson.CEP, pessoaJson.Endereco, pessoaJson.Numero, pessoaJson.Bairro, pessoaJson.Cidade, pessoaJson.Estado);
-
-                    CarteiraDto carteiraDtoLote = CarteiraDto.NovaCarteiraDto(pessoa, _acoes, _fiis);
-
-                    await _service.PessoaService.CriarNovoAsync(pessoaDto);
-                    //contatos.ForEach(contato => _repository.Contato.CriarNovoAsync(contato));
-                    await _repository.Contato.CriarEmLoteAsync(contatos);
-                    await _repository.Endereco.CriarNovoAsync(endereco);
-
-                    await _service.CarteiraService.CriarNovasCarteirasLote(carteiraDtoLote);
-                    _service.SaveChanges();
-                    //_repository.SaveChanges();
+                    await ProcessarPessoaAsync(pessoaJson);
                 }
-
-                MessageBox.Show("Cadastro realizado com sucesso!", "Sucesso!", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                catch (Exception)
+                {
+                    pessoasComErro.Add(pessoaJson.Nome);
+                }
             }
-            else
-                MessageBox.Show($"O arquivo {_service.ArquivoService.ObtemNomeDoArquivo(txtArquivo.Text)} não contem dados!", "Atenção", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
 
-            txtArquivo.Text = string.Empty;
+            ExibirMensagemCadastro(pessoasComErro);
         }
         catch (Exception ex)
         {
             MessageBox.Show(ex.Message, "Atenção", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+        }
+        finally 
+        {
+            txtArquivo.Text = string.Empty;
+        }
+    }
+    private void ExibirMensagemCadastro(List<string> pessoasComErro)
+    {
+        if (pessoasComErro.Any())
+        {
+            string mensagemErro = "As seguintes pessoas não foram cadastradas:\n" + string.Join("\n", pessoasComErro);
+            MessageBox.Show(mensagemErro, "Atenção", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+        }
+        else
+        {
+            MessageBox.Show("Todas as pessoas foram cadastradas com sucesso!", "Sucesso!", MessageBoxButtons.OK, MessageBoxIcon.Information);
+        }
+    }
+    private async Task ProcessarPessoaAsync(PessoaJson pessoaJson)
+    {
+        await _service.BeginTransactionAsync();
+        try
+        {
+            string[] valoresContatos = { pessoaJson.Email, pessoaJson.Telefone_fixo, pessoaJson.Celular };
+            PessoaDto pessoaDto = PessoaDto.NovaPessoaDto(
+                nome: pessoaJson.Nome,
+                cpf: pessoaJson.CPF,
+                rg: pessoaJson.RG,
+                dataNascimento: Convert.ToDateTime(pessoaJson.Data_nasc),
+                sexo: pessoaJson.Sexo
+            );
+
+            //List<Contato> contatos = Contato.ListaDeContatos(pessoa, _listaTipoContatos, valoresContatos);
+            //Endereco endereco = new Endereco(pessoa, pessoaJson.CEP, pessoaJson.Endereco, pessoaJson.Numero, pessoaJson.Bairro, pessoaJson.Cidade, pessoaJson.Estado);
+            pessoaDto.ID = await _service.PessoaService.CriarNovoAsync(pessoaDto);
+            var pessoa = await _service.PessoaService.ObtemPessoaPorCPF(pessoaDto.CPF);
+            CarteiraDto carteiraDtoLote = CarteiraDto.NovaCarteiraDto(pessoa, _acoes, _fiis);
+
+
+            //contatos.ForEach(contato => _repository.Contato.CriarNovoAsync(contato));
+            //await _repository.Contato.CriarEmLoteAsync(contatos);
+            //await _repository.Endereco.CriarNovoAsync(endereco);
+
+            await _service.CarteiraService.CriarNovasCarteirasLote(carteiraDtoLote);
+            _service.SaveChanges();
+            await _service.CommitTransactionAsync();
+        }
+        catch (Exception)
+        {
+            await _service.RollbackTransactionAsync();
+            throw;
         }
     }
     #endregion

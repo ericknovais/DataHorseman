@@ -20,9 +20,4 @@ public class PessoaRepository : RepositoryBase<Pessoa>, IPessoaRepository
     {
         return ctx.Pessoas.Where(pessoa => cpfs.Contains(pessoa.CPF)).ToList();
     }
-
-    Task<Pessoa?> IPessoaRepository.ObtemPessoaPorCPF(string cpf)
-    {
-        throw new NotImplementedException();
-    }
 }

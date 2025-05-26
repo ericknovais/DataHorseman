@@ -47,18 +47,18 @@ public class PessoaService : IPessoaService
         await _repository.SaveChangesAsync();
     }
 
-    public async Task CriarNovoAsync(PessoaDto entidade)
+    public async Task<int> CriarNovoAsync(PessoaDto entidade)
     {
         ValidacoesService.EntidadeEhNula(entidade);
-
-        Pessoa pessoa = Pessoa.Novo(
+        var pessoa = Pessoa.Novo(
             nome: entidade.Nome,
             cpf: entidade.CPF,
             rg: entidade.RG,
             sexo: entidade.Sexo,
             dataNascimento: entidade.DataNascimento);
-
         await _repository.CriarNovoAsync(pessoa);
+        await _repository.SaveChangesAsync();
+        return pessoa.ID; // Retorna o ID da nova pessoa criada
     }
 
     public async Task ExcluirAsync(PessoaDto entidade)
@@ -71,12 +71,12 @@ public class PessoaService : IPessoaService
         await _repository.SaveChangesAsync();
     }
 
-    public async Task<PessoaDto?> ObtemPessoaPorCPF(string cpf)
+    public async Task<Pessoa?> ObtemPessoaPorCPF(string cpf)
     {
         if (string.IsNullOrWhiteSpace(cpf))
             throw new ArgumentException("CPF não pode ser nulo ou vazio.", nameof(cpf));
         var pessoaExiste = await _repository.ObtemPessoaPorCPF(cpf);
-        return pessoaExiste == null ? null : _mapper.Map<PessoaDto>(pessoaExiste);
+        return pessoaExiste == null ? null : pessoaExiste;
     }
 
     public async Task<PessoaDto?> ObterPorIdAsync(int id)
@@ -93,7 +93,6 @@ public class PessoaService : IPessoaService
             ? new List<PessoaDto>()
             : _mapper.Map<IList<PessoaDto>>(pessoas);
     }
-
 
     public async Task<int> SaveChangesAsync() => await _repository.SaveChangesAsync();
 
@@ -119,5 +118,10 @@ public class PessoaService : IPessoaService
         }
 
         return _mapper.Map<IList<Pessoa>>(pessoas);
+    }
+
+    Task IServiceBase<PessoaDto>.CriarNovoAsync(PessoaDto entidade)
+    {
+        throw new NotImplementedException();
     }
 }

@@ -1,11 +1,13 @@
 ﻿using DataHorseman.Domain.Interfaces;
 using DataHorseman.Infrastructure.Persistencia.DataContext;
+using Microsoft.EntityFrameworkCore.Storage;
 
 namespace DataHorseman.Infrastructure.Persistencia.Repositories;
 
 public class Repository : IRepository
 {
     DataHorsemanDbContext ctx;
+    private IDbContextTransaction? _transaction;
     public Repository()
     {
         ctx = new DataHorsemanDbContext();
@@ -35,5 +37,31 @@ public class Repository : IRepository
     public void SaveChanges()
     {
         ctx.SaveChanges();
+    }
+
+    public async Task BeginTransactionAsync()
+    {
+        if (_transaction == null)
+            _transaction = await ctx.Database.BeginTransactionAsync();
+    }
+
+    public async Task CommitTransactionAsync()
+    {
+        if (_transaction != null)
+        {
+            await _transaction.CommitAsync();
+            await _transaction.DisposeAsync();
+            _transaction = null;
+        }
+    }
+
+    public async Task RollbackTransactionAsync()
+    {
+        if (_transaction != null)
+        {
+            await _transaction.RollbackAsync();
+            await _transaction.DisposeAsync();
+            _transaction = null;
+        }
     }
 }

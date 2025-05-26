@@ -3,6 +3,9 @@
 public interface IService
 {
     void SaveChanges();
+    Task BeginTransactionAsync();
+    Task CommitTransactionAsync();
+    Task RollbackTransactionAsync();
     public IAtivoService AtivoService { get; }
     public ICarteiraService CarteiraService { get; }
     public IContatoService ContatoService { get; }
