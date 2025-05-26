@@ -13,11 +13,11 @@ public class PessoaRepository : RepositoryBase<Pessoa>, IPessoaRepository
         ctx = contexto;
     }
 
-    public async Task<Pessoa?> ObtemPessoaPorCPF(string cpf) 
+    public async Task<Pessoa?> ObtemPessoaPorCPFAsync(string cpf) 
         => await ctx.Pessoas.FirstOrDefaultAsync(pessoa => pessoa.CPF.Equals(cpf));
 
-    public List<Pessoa> VerificaSePessoasJaCadastradas(List<string> cpfs)
+    public Task<List<Pessoa>> VerificaSePessoasJaCadastradasAsync(List<string> cpfs)
     {
-        return ctx.Pessoas.Where(pessoa => cpfs.Contains(pessoa.CPF)).ToList();
+        return ctx.Pessoas.Where(pessoa => cpfs.Contains(pessoa.CPF)).ToListAsync();
     }
 }

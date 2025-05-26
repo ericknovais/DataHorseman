@@ -5,8 +5,8 @@ namespace DataHorseman.Application.Interfaces;
 
 public interface IPessoaService : IServiceBase<PessoaDto>
 {
-    Task<Pessoa?> ObtemPessoaPorCPF(string cpf);
-    List<Pessoa> VerificaSePessoasJaCadastradas(List<string> cpfs);
-    IList<Pessoa> FiltrarPessoasNaoCadastradas(IList<PessoaDto> pessoas);
+    Task<Pessoa?> ObtemPessoaPorCPFAsync(string cpf);
+    Task<List<Pessoa>> VerificaSePessoasJaCadastradasAsync(List<string> cpfs);
+    Task<IList<Pessoa>> FiltrarPessoasNaoCadastradas(IList<PessoaDto> pessoas);
     new Task<int> CriarNovoAsync(PessoaDto entidade);
 }

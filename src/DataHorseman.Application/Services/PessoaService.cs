@@ -71,11 +71,11 @@ public class PessoaService : IPessoaService
         await _repository.SaveChangesAsync();
     }
 
-    public async Task<Pessoa?> ObtemPessoaPorCPF(string cpf)
+    public async Task<Pessoa?> ObtemPessoaPorCPFAsync(string cpf)
     {
         if (string.IsNullOrWhiteSpace(cpf))
             throw new ArgumentException("CPF não pode ser nulo ou vazio.", nameof(cpf));
-        var pessoaExiste = await _repository.ObtemPessoaPorCPF(cpf);
+        var pessoaExiste = await _repository.ObtemPessoaPorCPFAsync(cpf);
         return pessoaExiste == null ? null : pessoaExiste;
     }
 
@@ -96,15 +96,15 @@ public class PessoaService : IPessoaService
 
     public async Task<int> SaveChangesAsync() => await _repository.SaveChangesAsync();
 
-    public List<Pessoa> VerificaSePessoasJaCadastradas(List<string> cpfs)
+    public async Task<List<Pessoa>> VerificaSePessoasJaCadastradasAsync(List<string> cpfs)
     {
-        return _repository.VerificaSePessoasJaCadastradas(cpfs);
+        return await _repository.VerificaSePessoasJaCadastradasAsync(cpfs);
     }
 
-    public IList<Pessoa> FiltrarPessoasNaoCadastradas(IList<PessoaDto> pessoas)
+    public async Task<IList<Pessoa>> FiltrarPessoasNaoCadastradas(IList<PessoaDto> pessoas)
     {
         var cpfs = pessoas.Select(p => p.CPF).ToList();
-        var pessoasJaCadastradas = _repository.VerificaSePessoasJaCadastradas(cpfs);
+        var pessoasJaCadastradas =  await _repository.VerificaSePessoasJaCadastradasAsync(cpfs);
 
         if (pessoasJaCadastradas.Any())
         {

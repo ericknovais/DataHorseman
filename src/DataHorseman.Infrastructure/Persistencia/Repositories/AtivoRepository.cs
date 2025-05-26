@@ -14,7 +14,7 @@ namespace DataHorseman.Infrastructure.Persistencia.Repositories
             _contexto = contexto;
         }
 
-        public Task<List<Ativo>> ObtemAtivosPorTipoDeAtivoID(eTipoDeAtivo tipoDeAtivoID)
+        public Task<List<Ativo>> ObtemAtivosPorTipoDeAtivoIDAsync(eTipoDeAtivo tipoDeAtivoID)
         {
              var ativos = _contexto.Ativos
                     .Where(ativo => ativo.TipoDeAtivoId == (int)tipoDeAtivoID)

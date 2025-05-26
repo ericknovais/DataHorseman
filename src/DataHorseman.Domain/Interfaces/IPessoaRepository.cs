@@ -2,8 +2,8 @@
 
 namespace DataHorseman.Domain.Interfaces;
 
-public interface IPessoaRepository: IRepositoryBase<Pessoa>
+public interface IPessoaRepository : IRepositoryBase<Pessoa>
 {
-   Task<Pessoa?> ObtemPessoaPorCPF(string cpf);
-    List<Pessoa> VerificaSePessoasJaCadastradas(List<string> cpfs);
+    Task<Pessoa?> ObtemPessoaPorCPFAsync(string cpf);
+    Task<List<Pessoa>> VerificaSePessoasJaCadastradasAsync(List<string> cpfs);
 }

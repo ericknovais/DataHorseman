@@ -47,9 +47,20 @@ public class Repository : IRepository
 
     public async Task CommitTransactionAsync()
     {
-        if (_transaction != null)
+        if (_transaction == null)
+            throw new InvalidOperationException("Nenhuma transação foi iniciada.");
+
+        try
         {
             await _transaction.CommitAsync();
+        }
+        catch (Exception ex)
+        {
+            // Aqui você pode registrar ou fazer log da exceção se necessário
+            throw new InvalidOperationException("Erro ao realizar commit na transação.", ex);
+        }
+        finally
+        {
             await _transaction.DisposeAsync();
             _transaction = null;
         }
@@ -57,9 +68,20 @@ public class Repository : IRepository
 
     public async Task RollbackTransactionAsync()
     {
-        if (_transaction != null)
+        if (_transaction == null)
+            throw new InvalidOperationException("Nenhuma transação foi iniciada para fazer rollback.");
+
+        try
         {
             await _transaction.RollbackAsync();
+        }
+        catch (Exception ex)
+        {
+            // Aqui você pode registrar ou fazer log da exceção se necessário
+            throw new InvalidOperationException("Erro ao realizar rollback na transação.", ex);
+        }
+        finally
+        {
             await _transaction.DisposeAsync();
             _transaction = null;
         }
