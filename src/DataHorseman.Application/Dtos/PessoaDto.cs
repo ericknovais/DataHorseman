@@ -1,4 +1,6 @@
-﻿namespace DataHorseman.Application.Dtos;
+﻿using DataHorseman.Infrastructure.Persistencia.Dtos;
+
+namespace DataHorseman.Application.Dtos;
 
 public class PessoaDto
 {
@@ -9,15 +11,16 @@ public class PessoaDto
     public DateTime DataNascimento { get; set; }
     public string Sexo { get; set; } = string.Empty;
 
-    public static PessoaDto NovaPessoaDto(string nome, string cpf, string rg, DateTime dataNascimento, string sexo)
-    {
+    public static PessoaDto NovaPessoaDto(PessoaJson pessoaJson)
+    { 
+        var dataNascimento = DateTime.TryParse(pessoaJson.Data_nasc, out DateTime parsedDate) ? parsedDate : DateTime.MinValue;
         return new PessoaDto()
         {
-            Nome = nome,
-            CPF = cpf,
-            RG = rg,
+            Nome = pessoaJson.Nome,
+            CPF = pessoaJson.CPF,
+            RG = pessoaJson.CPF,
             DataNascimento = dataNascimento,
-            Sexo = sexo
+            Sexo = pessoaJson.Sexo
         };
     }
 }

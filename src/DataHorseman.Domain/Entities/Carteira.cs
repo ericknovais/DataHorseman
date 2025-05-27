@@ -5,15 +5,6 @@ namespace DataHorseman.Domain.Entidades
     [Table("Carteiras")]
     public class Carteira : EntidadeBase
     {
-        //public Carteira(Pessoa pessoa, Ativo ativo, double valorPorAtivo)
-        //{
-        //    Pessoa = pessoa;
-        //    Ativo = ativo;
-        //    Cota = Carteira.QuantidadeDeUmAtivo(valorPorAtivo, (double)ativo.UltimaNegociacao);
-        //    DataCadastro = DateTime.Now;
-        //    DataAtualizacao = DateTime.Now;
-        //}
-
         public Pessoa Pessoa { get; set; } = new Pessoa();
         public Ativo Ativo { get; set; } = new Ativo();
         public int Cota { get; set; }

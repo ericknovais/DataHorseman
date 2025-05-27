@@ -16,8 +16,10 @@ public class PessoaRepository : RepositoryBase<Pessoa>, IPessoaRepository
     public async Task<Pessoa?> ObtemPessoaPorCPFAsync(string cpf) 
         => await ctx.Pessoas.FirstOrDefaultAsync(pessoa => pessoa.CPF.Equals(cpf));
 
-    public Task<List<Pessoa>> VerificaSePessoasJaCadastradasAsync(List<string> cpfs)
+    public async Task<List<Pessoa>> VerificaSePessoasJaCadastradasAsync(List<string> cpfs)
     {
-        return ctx.Pessoas.Where(pessoa => cpfs.Contains(pessoa.CPF)).ToListAsync();
+        return await ctx.Pessoas.AsNoTracking()
+            .Where(pessoa => cpfs.Contains(pessoa.CPF))
+            .ToListAsync();
     }
 }

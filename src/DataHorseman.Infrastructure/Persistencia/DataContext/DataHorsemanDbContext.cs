@@ -33,6 +33,7 @@ public class DataHorsemanDbContext : DbContext
         modelBuilder.Entity<Pessoa>().Property(pessoa => pessoa.Nome).IsRequired();
         modelBuilder.Entity<Pessoa>().Property(pessoa => pessoa.Nome).HasColumnType("Varchar(max)");
         modelBuilder.Entity<Pessoa>().Property(pessoa => pessoa.DataNascimento).HasColumnType("Date");
+        modelBuilder.Entity<Pessoa>().HasIndex(pessoa => pessoa.CPF).HasDatabaseName("IX_Pessoa_CPF").IsUnique();
         base.OnModelCreating(modelBuilder);
     }
 }

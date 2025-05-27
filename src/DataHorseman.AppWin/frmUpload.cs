@@ -1,5 +1,6 @@
 using DataHorseman.Application.Dtos;
 using DataHorseman.Application.Interfaces;
+using DataHorseman.Application.Mappers;
 using DataHorseman.Domain.Entidades;
 using DataHorseman.Domain.Enums;
 using DataHorseman.Infrastructure.Persistencia.Dtos;
@@ -163,25 +164,20 @@ public partial class frmUpload : Form
         try
         {
             string[] valoresContatos = { pessoaJson.Email, pessoaJson.Telefone_fixo, pessoaJson.Celular };
-            PessoaDto pessoaDto = PessoaDto.NovaPessoaDto(
-                nome: pessoaJson.Nome,
-                cpf: pessoaJson.CPF,
-                rg: pessoaJson.RG,
-                dataNascimento: Convert.ToDateTime(pessoaJson.Data_nasc),
-                sexo: pessoaJson.Sexo
-            );
+            PessoaDto pessoaDto = PessoaDto.NovaPessoaDto(pessoaJson);
 
             //List<Contato> contatos = Contato.ListaDeContatos(pessoa, _listaTipoContatos, valoresContatos);
-            //Endereco endereco = new Endereco(pessoa, pessoaJson.CEP, pessoaJson.Endereco, pessoaJson.Numero, pessoaJson.Bairro, pessoaJson.Cidade, pessoaJson.Estado);
             pessoaDto.ID = await _service.PessoaService.CriarNovoAsync(pessoaDto);
             var pessoa = await _service.PessoaService.ObtemPessoaPorCPFAsync(pessoaDto.CPF);
-            CarteiraDto carteiraDtoLote = CarteiraDto.NovaCarteiraDto(pessoa, _acoes, _fiis);
+
+            EnderecoDto enderecoDto = EnderecoDto.NovoEnderecoDto(pessoa: pessoa, pessoaJson: pessoaJson);
+            await _service.EnderecoService.CriarNovoAsync(entidade: enderecoDto);
+            CarteiraDto carteiraDtoLote = CarteiraDto.NovaCarteiraDto(pessoa: pessoa, acoes: _acoes, fiis: _fiis);
 
 
             //contatos.ForEach(contato => _repository.Contato.CriarNovoAsync(contato));
             //await _repository.Contato.CriarEmLoteAsync(contatos);
-            //await _repository.Endereco.CriarNovoAsync(endereco);
-
+            
             await _service.CarteiraService.CriarNovasCarteirasLote(carteiraDtoLote);
             _service.SaveChanges();
             await _service.CommitTransactionAsync();
@@ -192,6 +188,7 @@ public partial class frmUpload : Form
             throw;
         }
     }
+
     private async Task SalvarAsync()
     {
         try
@@ -245,32 +242,16 @@ public partial class frmUpload : Form
         if (pessoasJson is null || !pessoasJson.Any())
             return new List<PessoaJson>();
 
-        var pessoas = pessoasJson
-            .Where(p => DateTime.TryParse(p.Data_nasc, out _)) // filtra só os válidos
-            .Select(p =>
-        {
-            DateTime.TryParse(p.Data_nasc, out DateTime dataNascimento);
-            return Pessoa.Novo(
-             nome: p.Nome,
-             cpf: p.CPF,
-             rg: p.RG,
-             sexo: p.Sexo,
-             dataNascimento: dataNascimento);
-        }).ToList();
-
+        var pessoasMapeadas = PessoaJsonMapper.MapearParaEntidadesValidas(pessoasJson);
+        var pessoas = pessoasMapeadas.Select(pm => pm.Pessoa).ToList();
         var pessoasNaoCadastradas = await _service.PessoaService.FiltrarPessoasNaoCadastradas(pessoas);
+        var cpfsNaoCadastrados = new HashSet<string>(pessoasNaoCadastradas.Select(p => p.CPF));
 
         // mapeia de volta pra PessoaJson, se precisar
-        var resultado = pessoasNaoCadastradas.Select(p => new PessoaJson
-        {
-            Nome = p.Nome,
-            CPF = p.CPF,
-            RG = p.RG,
-            Sexo = p.Sexo,
-            Data_nasc = p.DataNascimento.ToString("yyyy-MM-dd") // ou o formato que você usa
-        }).ToList();
-
-        return resultado;
+        return pessoasMapeadas
+        .Where(p => cpfsNaoCadastrados.Contains(p.Pessoa.CPF))
+        .Select(p => p.PessoaJson)
+        .ToList();
     }
     #endregion
 }
