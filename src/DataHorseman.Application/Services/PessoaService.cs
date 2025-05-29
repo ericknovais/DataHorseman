@@ -47,7 +47,7 @@ public class PessoaService : IPessoaService
         await _repository.SaveChangesAsync();
     }
 
-    public async Task<int> CriarNovoAsync(PessoaDto entidade)
+    public async Task<Pessoa> CriarNovoAsync(PessoaDto entidade)
     {
         ValidacoesService.EntidadeEhNula(entidade);
         var pessoa = Pessoa.Novo(
@@ -58,7 +58,7 @@ public class PessoaService : IPessoaService
             dataNascimento: entidade.DataNascimento);
         await _repository.CriarNovoAsync(pessoa);
         await _repository.SaveChangesAsync();
-        return pessoa.ID; // Retorna o ID da nova pessoa criada
+        return pessoa; // Retorna a entidade já persistida e com ID preenchido
     }
 
     public async Task ExcluirAsync(PessoaDto entidade)

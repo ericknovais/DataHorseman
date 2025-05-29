@@ -1,6 +1,7 @@
 using DataHorseman.Application.Dtos;
 using DataHorseman.Application.Interfaces;
 using DataHorseman.Application.Mappers;
+using DataHorseman.Application.UseCases.CadastrarPessoa;
 using DataHorseman.Domain.Entidades;
 using DataHorseman.Domain.Enums;
 using DataHorseman.Infrastructure.Persistencia.Dtos;
@@ -11,7 +12,6 @@ namespace DataHorseman.AppWin;
 
 public partial class frmUpload : Form
 {
-    protected readonly Repository _repository = new Repository();
     protected readonly IService _service;
     private IList<TipoContato> _listaTipoContatos;
     private List<AtivoDto> _acoes;
@@ -53,16 +53,16 @@ public partial class frmUpload : Form
     }
     #endregion
 
-    #region Métodos void
+    #region Métodos asyncs
     private async Task InicializaDadosNoBanco()
     {
         try
         {
-            var tipoContatos = await _repository.TipoContato.ObterTodosAsync();
+            var tipoContatos = await _service.TipoContatoService.ObterTodosAsync();
             if (!tipoContatos.Any())
                 SalvaTipoDeContatosNoBanco();
 
-            var tipoDeAtivos = await _repository.TipoDeAtivo.ObterTodosAsync();
+            var tipoDeAtivos = await _service.TipoDeAtivoService.ObterTodosAsync();
             if (!tipoDeAtivos.Any())
                 SalvaTipoDeAtivosNoBanco();
 
@@ -79,15 +79,11 @@ public partial class frmUpload : Form
             MensagemDeErro(ex.Message);
         }
     }
-    private void MensagemDeErro(string mensagem)
-    {
-        MessageBox.Show(mensagem, "Atenção", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
-    }
     private async Task CarregaListasAsync()
     {
         try
         {
-            _listaTipoContatos = await _repository.TipoContato.ObterTodosAsync();
+            _listaTipoContatos = await _service.TipoContatoService.ObterTodosAsync();
             _acoes = await ObtemListaDeAtivosPorTipoDeAtivoAsync(eTipoDeAtivo.Acao);
             _fiis = await ObtemListaDeAtivosPorTipoDeAtivoAsync(eTipoDeAtivo.FundoImobiliario);
         }
@@ -134,61 +130,6 @@ public partial class frmUpload : Form
         }).ToList();
         await _service.AtivoService.CriarEmLoteAsync(ativosDTO);
     }
-    private void SalvaTipoDeAtivosNoBanco()
-    {
-        List<TipoDeAtivo> listaTipoDeAtivos = new TipoDeAtivo().CarregaTipoDeAtivo();
-        foreach (TipoDeAtivo tipoDeAtivo in listaTipoDeAtivos)
-            _repository.TipoDeAtivo.CriarNovoAsync(tipoDeAtivo);
-        _repository.SaveChanges();
-    }
-    private void SalvaTipoDeContatosNoBanco()
-    {
-        List<TipoContato> listadeTipocontatos = new TipoContato().CarregaListaTipoContato();
-        foreach (TipoContato tipoContato in listadeTipocontatos)
-            _repository.TipoContato.CriarNovoAsync(tipoContato);
-        _repository.SaveChanges();
-    }
-    private void ExibirMensagemCadastro(List<string> pessoasComErro)
-    {
-        if (pessoasComErro.Any())
-        {
-            string mensagemErro = $"As seguintes pessoas não foram cadastradas:{Environment.NewLine}{string.Join(Environment.NewLine, pessoasComErro)}";
-            MensagemDeErro(mensagemErro);
-        }
-        else
-            MessageBox.Show("Todas as pessoas foram cadastradas com sucesso!", "Sucesso!", MessageBoxButtons.OK, MessageBoxIcon.Information);
-    }
-    private async Task ProcessaPessoaAsync(PessoaJson pessoaJson)
-    {
-        await _service.BeginTransactionAsync();
-        try
-        {
-            string[] valoresContatos = { pessoaJson.Email, pessoaJson.Telefone_fixo, pessoaJson.Celular };
-            PessoaDto pessoaDto = PessoaDto.NovaPessoaDto(pessoaJson);
-
-            //List<Contato> contatos = Contato.ListaDeContatos(pessoa, _listaTipoContatos, valoresContatos);
-            pessoaDto.ID = await _service.PessoaService.CriarNovoAsync(pessoaDto);
-            var pessoa = await _service.PessoaService.ObtemPessoaPorCPFAsync(pessoaDto.CPF);
-
-            EnderecoDto enderecoDto = EnderecoDto.NovoEnderecoDto(pessoa: pessoa, pessoaJson: pessoaJson);
-            await _service.EnderecoService.CriarNovoAsync(entidade: enderecoDto);
-            CarteiraDto carteiraDtoLote = CarteiraDto.NovaCarteiraDto(pessoa: pessoa, acoes: _acoes, fiis: _fiis);
-
-
-            //contatos.ForEach(contato => _repository.Contato.CriarNovoAsync(contato));
-            //await _repository.Contato.CriarEmLoteAsync(contatos);
-            
-            await _service.CarteiraService.CriarNovasCarteirasLote(carteiraDtoLote);
-            _service.SaveChanges();
-            await _service.CommitTransactionAsync();
-        }
-        catch (Exception)
-        {
-            await _service.RollbackTransactionAsync();
-            throw;
-        }
-    }
-
     private async Task SalvarAsync()
     {
         try
@@ -210,11 +151,12 @@ public partial class frmUpload : Form
     private async Task<List<string>> ProcessarPessoasAsync(IList<PessoaJson> pessoasFiltradas)
     {
         var pessoasComErro = new List<string>();
+        var cadastroPessoaUseCase = new CadastroPessoaUseCase(_service, _listaTipoContatos, _acoes, _fiis);
         foreach (PessoaJson pessoaJson in pessoasFiltradas)
         {
             try
             {
-                await ProcessaPessoaAsync(pessoaJson);
+              await cadastroPessoaUseCase.ProcessaPessoaAsync(pessoaJson);
             }
             catch (Exception)
             {
@@ -222,6 +164,37 @@ public partial class frmUpload : Form
             }
         }
         return pessoasComErro;
+    }
+    #endregion
+
+    #region Métodos sem returno
+    private void SalvaTipoDeAtivosNoBanco()
+    {
+        List<TipoDeAtivo> listaTipoDeAtivos = TipoDeAtivo.CarregaTipoDeAtivo();
+        foreach (TipoDeAtivo tipoDeAtivo in listaTipoDeAtivos)
+            _service.TipoDeAtivoService.CriarNovoAsync(tipoDeAtivo);
+        _service.SaveChanges();
+    }
+    private void SalvaTipoDeContatosNoBanco()
+    {
+        List<TipoContato> listadeTipocontatos = new TipoContato().CarregaListaTipoContato();
+        foreach (TipoContato tipoContato in listadeTipocontatos)
+            _service.TipoContatoService.CriarNovoAsync(tipoContato);
+        _service.SaveChanges();
+    }
+    private void ExibirMensagemCadastro(List<string> pessoasComErro)
+    {
+        if (pessoasComErro.Any())
+        {
+            string mensagemErro = $"As seguintes pessoas não foram cadastradas:{Environment.NewLine}{string.Join(Environment.NewLine, pessoasComErro)}";
+            MensagemDeErro(mensagemErro);
+        }
+        else
+            MessageBox.Show("Todas as pessoas foram cadastradas com sucesso!", "Sucesso!", MessageBoxButtons.OK, MessageBoxIcon.Information);
+    }
+    private void MensagemDeErro(string mensagem)
+    {
+        MessageBox.Show(mensagem, "Atenção", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
     }
     #endregion
 

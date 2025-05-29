@@ -48,7 +48,7 @@ public class Endereco : EntidadeBase
 
     public void AtualizarEndereco(Pessoa pessoa, EnderecoDados enderecoDados)
     {  
-        Pessoa = pessoa;
+        //Pessoa = pessoa;
         Logradouro = enderecoDados.Logradouro;
         CEP = enderecoDados.CEP;
         Bairro = enderecoDados.Bairro;

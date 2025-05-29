@@ -13,25 +13,28 @@ public class Service : IService
     {
         _repository = repository;
         _mapper = mapper;
-
+        
+        ArquivoService = new ArquivoService();
         AtivoService = new AtivoService(_repository.Ativo, _mapper);
         CarteiraService = new CarteiraService(_repository.Carteira, _mapper);
         PessoaService = new PessoaService(_repository.Pessoa, _mapper);
-        ArquivoService = new ArquivoService();
         EnderecoService = new EnderecoService(_repository.Endereco, _mapper, _repository.Pessoa);
+        ContatoService = new ContatosService(_repository.Contato, _mapper);
+        TipoContatoService = new TipoContatoService(_repository.TipoContato, _mapper);
+        TipoDeAtivoService = new TipoDeAtivoService(_repository.TipoDeAtivo, _mapper);
     }
 
     public IAtivoService AtivoService { get; }
 
-    public IContatoService ContatoService => throw new NotImplementedException();
+    public IContatoService ContatoService { get; }
 
     public IEnderecoService EnderecoService { get; }
 
     public IPessoaService PessoaService { get; }
 
-    public ITipoContatoService TipoContatoService => throw new NotImplementedException();
+    public ITipoContatoService TipoContatoService { get; }
 
-    public ITipoDeAtivoService TipoDeAtivoService => throw new NotImplementedException();
+    public ITipoDeAtivoService TipoDeAtivoService { get; }
 
     public ICarteiraService CarteiraService { get; }
 

@@ -10,13 +10,6 @@ public class CarteiraDto
 
     public static CarteiraDto NovaCarteiraDto(Pessoa pessoa, List<AtivoDto> acoes, List<AtivoDto> fiis)
     {
-        //var novaPessoa = Pessoa.Novo(
-        //    nome: pessoa.Nome,
-        //    cpf: pessoa.CPF,
-        //    rg: pessoa.RG,
-        //    sexo: pessoa.Sexo,
-        //    dataNascimento: pessoa.DataNascimento);
-
         return new CarteiraDto()
         {
             Pessoa = pessoa,
