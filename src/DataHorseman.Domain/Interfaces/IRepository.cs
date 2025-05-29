@@ -10,4 +10,9 @@ public interface IRepository
     public ITipoDeAtivoRepository TipoDeAtivo { get;}
     public IAtivoRepository Ativo { get;}
     public ICarteiraRepository Carteira { get;}
+
+    // Controle de transação
+    Task BeginTransactionAsync();
+    Task CommitTransactionAsync();
+    Task RollbackTransactionAsync();
 }

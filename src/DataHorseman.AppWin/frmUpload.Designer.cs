@@ -35,17 +35,19 @@ partial class frmUpload
         // 
         // txtArquivo
         // 
-        txtArquivo.Location = new Point(10, 25);
+        txtArquivo.Location = new Point(9, 19);
+        txtArquivo.Margin = new Padding(3, 2, 3, 2);
         txtArquivo.Name = "txtArquivo";
         txtArquivo.ReadOnly = true;
-        txtArquivo.Size = new Size(485, 27);
+        txtArquivo.Size = new Size(425, 23);
         txtArquivo.TabIndex = 0;
         // 
         // btnUpload
         // 
-        btnUpload.Location = new Point(10, 58);
+        btnUpload.Location = new Point(9, 44);
+        btnUpload.Margin = new Padding(3, 2, 3, 2);
         btnUpload.Name = "btnUpload";
-        btnUpload.Size = new Size(94, 29);
+        btnUpload.Size = new Size(82, 22);
         btnUpload.TabIndex = 1;
         btnUpload.Text = "Upload";
         btnUpload.UseVisualStyleBackColor = true;
@@ -53,9 +55,10 @@ partial class frmUpload
         // 
         // btnSalvar
         // 
-        btnSalvar.Location = new Point(401, 61);
+        btnSalvar.Location = new Point(351, 46);
+        btnSalvar.Margin = new Padding(3, 2, 3, 2);
         btnSalvar.Name = "btnSalvar";
-        btnSalvar.Size = new Size(94, 29);
+        btnSalvar.Size = new Size(82, 22);
         btnSalvar.TabIndex = 2;
         btnSalvar.Text = "Salvar";
         btnSalvar.UseVisualStyleBackColor = true;
@@ -63,17 +66,19 @@ partial class frmUpload
         // 
         // frmUpload
         // 
-        AutoScaleDimensions = new SizeF(8F, 20F);
+        AutoScaleDimensions = new SizeF(7F, 15F);
         AutoScaleMode = AutoScaleMode.Font;
-        ClientSize = new Size(507, 102);
+        ClientSize = new Size(444, 76);
         Controls.Add(btnSalvar);
         Controls.Add(btnUpload);
         Controls.Add(txtArquivo);
+        Margin = new Padding(3, 2, 3, 2);
         MaximizeBox = false;
         MinimizeBox = false;
         Name = "frmUpload";
         StartPosition = FormStartPosition.CenterScreen;
         Text = "Upload";
+        Load += frmUpload_Load;
         ResumeLayout(false);
         PerformLayout();
     }

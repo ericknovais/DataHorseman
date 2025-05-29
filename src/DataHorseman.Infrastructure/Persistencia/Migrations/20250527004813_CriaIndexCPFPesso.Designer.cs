@@ -4,6 +4,7 @@ using DataHorseman.Infrastructure.Persistencia.DataContext;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace DataHorseman.Infrastructure.Migrations
 {
     [DbContext(typeof(DataHorsemanDbContext))]
-    partial class ContextoDataBaseModelSnapshot : ModelSnapshot
+    [Migration("20250527004813_CriaIndexCPFPesso")]
+    partial class CriaIndexCPFPesso
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

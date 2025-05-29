@@ -1,17 +1,17 @@
 using DataHorseman.Application.Dtos;
 using DataHorseman.Application.Interfaces;
+using DataHorseman.Application.Mappers;
+using DataHorseman.Application.UseCases.CadastrarPessoa;
 using DataHorseman.Domain.Entidades;
 using DataHorseman.Domain.Enums;
 using DataHorseman.Infrastructure.Persistencia.Dtos;
 using DataHorseman.Infrastructure.Persistencia.Repositories;
-using System.ComponentModel.DataAnnotations;
-using System.Threading.Tasks;
+using System.Globalization;
 
 namespace DataHorseman.AppWin;
 
 public partial class frmUpload : Form
 {
-    protected readonly Repository _repository = new Repository();
     protected readonly IService _service;
     private IList<TipoContato> _listaTipoContatos;
     private List<AtivoDto> _acoes;
@@ -26,10 +26,9 @@ public partial class frmUpload : Form
         _service = service;
         InitializeComponent();
     }
-    private async void btnUpload_Click(object sender, EventArgs e)
+    private void btnUpload_Click(object sender, EventArgs e)
     {
-        await InicializaDadosNoBanco();
-        await CarregaListas();
+
         OpenFileDialog ofd = new OpenFileDialog();
         ofd.CheckFileExists = true;
         ofd.Multiselect = false;
@@ -38,136 +37,194 @@ public partial class frmUpload : Form
     }
     private async void btnSalvar_Click(object sender, EventArgs e)
     {
+        await SalvarAsync();
+    }
+    private async void frmUpload_Load(object sender, EventArgs e)
+    {
         try
         {
-
-            IList<PessoaJson>? pessoas = _service.ArquivoService.LerArquivoJson<PessoaJson>(txtArquivo.Text);
-
-            if (pessoas != null && pessoas.Any())
-            {
-                var pessoasFiltradas = FiltrarPessoasNaoCadastradas(pessoas);
-
-                foreach (PessoaJson pessoaJson in pessoasFiltradas)
-                {
-                    string[] valoresContatos = { pessoaJson.Email, pessoaJson.Telefone_fixo, pessoaJson.Celular };
-                    Pessoa pessoa = new Pessoa(pessoaJson.Nome, pessoaJson.CPF, pessoaJson.RG, pessoaJson.Sexo, Convert.ToDateTime(pessoaJson.Data_nasc));
-                    List<Contato> contatos = Contato.ListaDeContatos(pessoa, _listaTipoContatos, valoresContatos);
-                    Endereco endereco = new Endereco(pessoa, pessoaJson.CEP, pessoaJson.Endereco, pessoaJson.Numero, pessoaJson.Bairro, pessoaJson.Cidade, pessoaJson.Estado);
-
-                    CarteiraDto carteiraDtoLote = CarteiraDto.NovaCarteiraDto(pessoa, _acoes, _fiis);
-
-                    await _repository.Pessoa.CriarNovoAsync(pessoa);
-                    contatos.ForEach(contato => _repository.Contato.CriarNovoAsync(contato));
-                    await _repository.Endereco.CriarNovoAsync(endereco);
-
-                    await _service.CarteiraService.CriarNovasCarteirasLote(carteiraDtoLote);
-                    _service.SaveChanges();
-                }
-
-                MessageBox.Show("Cadastro realizado com sucesso!", "Sucesso!", MessageBoxButtons.OK, MessageBoxIcon.Information);
-            }
-            else
-                MessageBox.Show($"O arquivo {_service.ArquivoService.ObtemNomeDoArquivo(txtArquivo.Text)} não contem dados!", "Atenção", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
-
-            txtArquivo.Text = string.Empty;
+            await InicializaDadosNoBanco();
+            await CarregaListasAsync();
         }
         catch (Exception ex)
         {
-            MessageBox.Show(ex.Message, "Atenção", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+            MensagemDeErro($"Erro ao carregar o formulário: {ex.Message}");
         }
     }
     #endregion
 
-    #region Métodos void
+    #region Métodos asyncs
     private async Task InicializaDadosNoBanco()
     {
-        var tipoContatos = await _repository.TipoContato.ObterTodosAsync();
-        if (tipoContatos.Count == 0)
-            SalvaTipoDeContatosNoBanco();
-        var tipoDeAtivos = await _repository.TipoDeAtivo.ObterTodosAsync();
-        if (tipoDeAtivos.Count == 0)
-            SalvaTipoDeAtivosNoBanco();
-        if (_service.AtivoService.ObtemAtivosPorTipoDeAtivoID(eTipoDeAtivo.Acao).Count == 0)
-            SalvarAtivosNoBancoDeDados(eTipoDeAtivo.Acao);
-        if (_service.AtivoService.ObtemAtivosPorTipoDeAtivoID(eTipoDeAtivo.FundoImobiliario).Count == 0)
-            SalvarAtivosNoBancoDeDados(eTipoDeAtivo.FundoImobiliario);
-    }
-    private async Task CarregaListas()
-    {
-        _listaTipoContatos = await _repository.TipoContato.ObterTodosAsync();
-        _acoes = await ObtemListaDeAtivosPorTipoDeAtivo(eTipoDeAtivo.Acao);
-        _fiis = await ObtemListaDeAtivosPorTipoDeAtivo(eTipoDeAtivo.FundoImobiliario);
-    }
-    private void SalvarAtivosNoBancoDeDados(eTipoDeAtivo tipoDeAtivo)
-    {
-        if (tipoDeAtivo == eTipoDeAtivo.Acao)
+        try
         {
-            IList<AtivoJson>? acoes = _service.ArquivoService.LerArquivoJson<AtivoJson>(@"..\..\..\CargaDeAtivos\acoes.json");
-            if (acoes != null)
-                SalvaListaDeAtivos(acoes.ToList(), tipoDeAtivo);
-        }
-        else if (tipoDeAtivo == eTipoDeAtivo.FundoImobiliario)
-        {
-            IList<AtivoJson>? fii = _service.ArquivoService.LerArquivoJson<AtivoJson>(@"..\..\..\CargaDeAtivos\fiis.json");
-            if (fii != null)
-                SalvaListaDeAtivos(fii.Where(fii => fii.Ultimo != "0").ToList(), tipoDeAtivo);
-        }
-    }
-    private void SalvaListaDeAtivos(List<AtivoJson> ativos, eTipoDeAtivo tipoDeAtivo)
-    {
-        ativos.ForEach(
-                ativoJson =>
-                    _repository.Ativo.CriarNovoAsync(
+            var tipoContatos = await _service.TipoContatoService.ObterTodosAsync();
+            if (!tipoContatos.Any())
+                SalvaTipoDeContatosNoBanco();
 
-                        Ativo.NovoAtivo(
-                            tipoDeAtivoID: tipoDeAtivo,
-                            ticker: ativoJson.Ticker,
-                            nome: ativoJson.Nome,
-                            ultimaNegociacao: Convert.ToDecimal($"{ativoJson.Ultimo},{ativoJson.Decimal}")
-                        )
-                    )
-        );
-        _repository.SaveChanges();
+            var tipoDeAtivos = await _service.TipoDeAtivoService.ObterTodosAsync();
+            if (!tipoDeAtivos.Any())
+                SalvaTipoDeAtivosNoBanco();
+
+            var acoes = await _service.AtivoService.ObtemAtivosPorTipoDeAtivoIDAsync(eTipoDeAtivo.Acao);
+            if (!acoes.Any())
+                await SalvarAtivosNoBancoDeDados(eTipoDeAtivo.Acao);
+
+            var fiis = await _service.AtivoService.ObtemAtivosPorTipoDeAtivoIDAsync(eTipoDeAtivo.FundoImobiliario);
+            if (!fiis.Any())
+                await SalvarAtivosNoBancoDeDados(eTipoDeAtivo.FundoImobiliario);
+        }
+        catch (Exception ex)
+        {
+            MensagemDeErro(ex.Message);
+        }
     }
+    private async Task CarregaListasAsync()
+    {
+        try
+        {
+            _listaTipoContatos = await _service.TipoContatoService.ObterTodosAsync();
+            _acoes = await ObtemListaDeAtivosPorTipoDeAtivoAsync(eTipoDeAtivo.Acao);
+            _fiis = await ObtemListaDeAtivosPorTipoDeAtivoAsync(eTipoDeAtivo.FundoImobiliario);
+        }
+        catch (Exception ex)
+        {
+            // Lidar com o erro adequadamente
+            MensagemDeErro($"Ocorreu um erro ao carregar as listas: {ex.Message}");
+        }
+    }
+    private async Task SalvarAtivosNoBancoDeDados(eTipoDeAtivo tipoDeAtivo)
+    {
+        string caminhoArquivo = tipoDeAtivo switch
+        {
+            eTipoDeAtivo.Acao => @"..\..\..\CargaDeAtivos\acoes.json",
+            eTipoDeAtivo.FundoImobiliario => @"..\..\..\CargaDeAtivos\fiis.json",
+            _ => throw new ArgumentOutOfRangeException(nameof(tipoDeAtivo), "Tipo de ativo não suportado.")
+        };
+
+        IList<AtivoJson>? ativos = _service.ArquivoService.LerArquivoJson<AtivoJson>(caminhoArquivo);
+        if (ativos != null)
+        {
+            // Filtro específico para FIIs
+            if (tipoDeAtivo == eTipoDeAtivo.FundoImobiliario)
+                ativos = ativos.Where(a => a.Ultimo != "0").ToList();
+
+            await SalvaListaDeAtivos(ativos.ToList(), tipoDeAtivo);
+        }
+    }
+    private async Task SalvaListaDeAtivos(List<AtivoJson> ativos, eTipoDeAtivo tipoDeAtivo)
+    {
+        var cultura = new CultureInfo("pt-BR");
+
+        var ativosDTO = ativos.Select(ativoJson =>
+        {
+            decimal valor = 0;
+            decimal.TryParse($"{ativoJson.Ultimo},{ativoJson.Decimal}", NumberStyles.Any, cultura, out valor);
+            return new AtivoDto
+            {
+                TipoDeAtivoId = tipoDeAtivo,
+                Ticker = ativoJson.Ticker,
+                Nome = ativoJson.Nome,
+                UltimaNegociacao = valor
+            };
+        }).ToList();
+        await _service.AtivoService.CriarEmLoteAsync(ativosDTO);
+    }
+    private async Task SalvarAsync()
+    {
+        try
+        {
+            IList<PessoaJson> pessoas = CarregaPessoasDoArquivo();
+            IList<PessoaJson> pessoasFiltradas = await FiltraSomentePessoasNaoCadastradas(pessoas);
+            List<string> pessoasComErro = await ProcessarPessoasAsync(pessoasFiltradas);
+            ExibirMensagemCadastro(pessoasComErro);
+        }
+        catch (Exception ex)
+        {
+            MensagemDeErro(ex.Message);
+        }
+        finally
+        {
+            txtArquivo.Text = string.Empty;
+        }
+    }
+    private async Task<List<string>> ProcessarPessoasAsync(IList<PessoaJson> pessoasFiltradas)
+    {
+        var pessoasComErro = new List<string>();
+        var cadastroPessoaUseCase = new CadastroPessoaUseCase(_service, _listaTipoContatos, _acoes, _fiis);
+        foreach (PessoaJson pessoaJson in pessoasFiltradas)
+        {
+            try
+            {
+              await cadastroPessoaUseCase.ProcessaPessoaAsync(pessoaJson);
+            }
+            catch (Exception)
+            {
+                pessoasComErro.Add(pessoaJson.Nome);
+            }
+        }
+        return pessoasComErro;
+    }
+    #endregion
+
+    #region Métodos sem returno
     private void SalvaTipoDeAtivosNoBanco()
     {
-        List<TipoDeAtivo> listaTipoDeAtivos = new TipoDeAtivo().CarregaTipoDeAtivo();
+        List<TipoDeAtivo> listaTipoDeAtivos = TipoDeAtivo.CarregaTipoDeAtivo();
         foreach (TipoDeAtivo tipoDeAtivo in listaTipoDeAtivos)
-            _repository.TipoDeAtivo.CriarNovoAsync(tipoDeAtivo);
-        _repository.SaveChanges();
+            _service.TipoDeAtivoService.CriarNovoAsync(tipoDeAtivo);
+        _service.SaveChanges();
     }
     private void SalvaTipoDeContatosNoBanco()
     {
         List<TipoContato> listadeTipocontatos = new TipoContato().CarregaListaTipoContato();
         foreach (TipoContato tipoContato in listadeTipocontatos)
-            _repository.TipoContato.CriarNovoAsync(tipoContato);
-        _repository.SaveChanges();
+            _service.TipoContatoService.CriarNovoAsync(tipoContato);
+        _service.SaveChanges();
+    }
+    private void ExibirMensagemCadastro(List<string> pessoasComErro)
+    {
+        if (pessoasComErro.Any())
+        {
+            string mensagemErro = $"As seguintes pessoas não foram cadastradas:{Environment.NewLine}{string.Join(Environment.NewLine, pessoasComErro)}";
+            MensagemDeErro(mensagemErro);
+        }
+        else
+            MessageBox.Show("Todas as pessoas foram cadastradas com sucesso!", "Sucesso!", MessageBoxButtons.OK, MessageBoxIcon.Information);
+    }
+    private void MensagemDeErro(string mensagem)
+    {
+        MessageBox.Show(mensagem, "Atenção", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
     }
     #endregion
 
     #region Métodos com return
-    private async Task<List<AtivoDto>> ObtemListaDeAtivosPorTipoDeAtivo(eTipoDeAtivo idTipoAtivo)
+    private async Task<List<AtivoDto>> ObtemListaDeAtivosPorTipoDeAtivoAsync(eTipoDeAtivo idTipoAtivo)
     {
-        return _service.AtivoService.ObtemAtivosPorTipoDeAtivoID(idTipoAtivo);
+        return await _service.AtivoService.ObtemAtivosPorTipoDeAtivoIDAsync(idTipoAtivo);
     }
-
-    public IList<PessoaJson> FiltrarPessoasNaoCadastradas(IList<PessoaJson> pessoas)
+    private IList<PessoaJson> CarregaPessoasDoArquivo()
     {
-        var cpfs = pessoas.Select(p => p.CPF).ToList();
-        var pessoasJaCadastradas = _repository.Pessoa.VerificaSePessoasJaCadastradas(cpfs);
-
-        if (pessoasJaCadastradas.Count > 0)
-        {
-            var cpfsJaCadastrados = pessoasJaCadastradas
-                .Select(p => p.CPF)
-                .ToHashSet(); // mais rápido para busca
-
-            pessoas = pessoas
-                .Where(p => !cpfsJaCadastrados.Contains(p.CPF))
-                .ToList();
-        }
-
+        var pessoas = _service.ArquivoService.LerArquivoJson<PessoaJson>(txtArquivo.Text);
+        if (pessoas == null || !pessoas.Any())
+            throw new Exception($"O arquivo {_service.ArquivoService.ObtemNomeDoArquivo(txtArquivo.Text)} não contem dados!");
         return pessoas;
+    }
+    public async Task<IList<PessoaJson>> FiltraSomentePessoasNaoCadastradas(IList<PessoaJson> pessoasJson)
+    {
+        if (pessoasJson is null || !pessoasJson.Any())
+            return new List<PessoaJson>();
+
+        var pessoasMapeadas = PessoaJsonMapper.MapearParaEntidadesValidas(pessoasJson);
+        var pessoas = pessoasMapeadas.Select(pm => pm.Pessoa).ToList();
+        var pessoasNaoCadastradas = await _service.PessoaService.FiltrarPessoasNaoCadastradas(pessoas);
+        var cpfsNaoCadastrados = new HashSet<string>(pessoasNaoCadastradas.Select(p => p.CPF));
+
+        // mapeia de volta pra PessoaJson, se precisar
+        return pessoasMapeadas
+        .Where(p => cpfsNaoCadastrados.Contains(p.Pessoa.CPF))
+        .Select(p => p.PessoaJson)
+        .ToList();
     }
     #endregion
 }

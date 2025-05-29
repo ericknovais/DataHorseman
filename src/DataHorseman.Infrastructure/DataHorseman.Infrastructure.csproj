@@ -7,7 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="Persistencia\Dtos\AtivoJson" />
+    <None Remove="Persistencia\ImportModels\AtivoJson" />
   </ItemGroup>
 
   <ItemGroup>

@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using DataHorseman.Application.Dtos;
 using DataHorseman.Application.Interfaces;
+using DataHorseman.Application.Validations;
 using DataHorseman.Domain.Entidades;
 using DataHorseman.Domain.Interfaces;
 
@@ -16,15 +17,19 @@ public class CarteiraService : ICarteiraService
         _mapper = mapper;
     }
 
-    public Task Atualiza(CarteiraDto entidade)
+    public Task AtualizaAsync(CarteiraDto entidade)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task CriarEmLoteAsync(IEnumerable<CarteiraDto> entidades)
     {
         throw new NotImplementedException();
     }
 
     public async Task CriarNovasCarteirasLote(CarteiraDto entidade)
     {
-        if (entidade is null)
-            throw new ArgumentNullException(nameof(entidade), "A entidade fornecida não pode ser nula.");
+        ValidacoesService.EntidadeEhNula(entidade);
 
         var acoes = entidade.Acoes ?? new List<AtivoDto>();
         var fiis = entidade.FundosImobiliarios ?? new List<AtivoDto>();
@@ -59,7 +64,7 @@ public class CarteiraService : ICarteiraService
         throw new NotImplementedException();
     }
 
-    public Task Excluir(CarteiraDto entidade)
+    public Task ExcluirAsync(CarteiraDto entidade)
     {
         throw new NotImplementedException();
     }

@@ -43,7 +43,7 @@ public class Ativo : EntidadeBase
     public void AtualizarAtivo(string ticker, string nome)
     {
         Ticker = ticker.Trim();
-        nome = nome.Trim();
+        Nome = nome.Trim();
         DataAtualizacao = DateTime.Now;
         Valida();
     }
@@ -54,6 +54,6 @@ public class Ativo : EntidadeBase
             return new List<Ativo>();
 
         quantidade = Math.Min(quantidade, listaAtivo.Count);
-        return listaAtivo.OrderBy(_ => ordenaLista.Next()).Take(quantidade).ToList();
+        return listaAtivo.OrderBy(_ => ordenaLista.Next()).Take(quantidade).ToList(); ;
     }
 }
