@@ -18,6 +18,8 @@ public abstract class RepositoryBase<T> : IRepositoryBase<T> where T : EntidadeB
 
     public void Atualiza(T entidade) => _dbSet.Update(entidade);
 
+    public async Task CriarEmLoteAsync(IEnumerable<T> entidades) => await _dbSet.AddRangeAsync(entidades); 
+
     public async Task CriarNovoAsync(T entidade) => await _dbSet.AddAsync(entidade);
 
     public void Excluir(T entidade) => _dbSet.Remove(entidade);

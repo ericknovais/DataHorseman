@@ -8,7 +8,7 @@ public abstract class EntidadeBase
     public DateTime DataCadastro { get; set; }
     public DateTime DataAtualizacao { get; set; }
 
-    protected StringBuilder _msgErro = new StringBuilder();
+    private readonly StringBuilder _msgErro = new();
 
     public virtual void Valida()
     {
@@ -16,15 +16,28 @@ public abstract class EntidadeBase
             throw new Exception(_msgErro.ToString());
     }
 
+    protected void LimparErros() => _msgErro.Clear();
+
+    protected void AdicionarErro(string mensagem) => _msgErro.AppendLine(mensagem);
+
     protected void ValidaCampoTexto(string valorCampo, string nomeCampo)
     {
-        if (string.IsNullOrEmpty(valorCampo))
-            _msgErro.Append($"O campo {nomeCampo} é obrigatório! {Environment.NewLine}");
+        if (string.IsNullOrWhiteSpace(valorCampo))
+            _msgErro.AppendLine($"O campo {nomeCampo} é obrigatório!");
     }
 
     protected void ValidaCampoNumerico(int campoNumerico, string nomeCampo)
     {
         if (campoNumerico <= 0)
-            _msgErro.Append($"O campo {nomeCampo} deve ser maior que zero!");
+            _msgErro.AppendLine($"O campo {nomeCampo} deve ser maior que zero!");
+    }
+
+    protected void ValidaCamposObrigatorios(params (string Valor, string Nome)[] campos)
+    {
+        foreach (var (valor, nome) in campos)
+        {
+            if (string.IsNullOrWhiteSpace(valor))
+                _msgErro.AppendLine($"O campo {nome} é obrigatório!");
+        }
     }
 }

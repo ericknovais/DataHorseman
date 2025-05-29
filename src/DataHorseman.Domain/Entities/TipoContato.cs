@@ -7,45 +7,39 @@ public class TipoContato : EntidadeBase
 {
     [DatabaseGenerated(DatabaseGeneratedOption.None)]
     public new int ID { get; set; }
-    public TipoContato()
+    public string Descricao { get; set; } = string.Empty;
+
+    public override void Valida()
     {
-        Descricao = string.Empty;
+        ValidaCampoTexto(Descricao, "Descrição");
+        base.Valida();
     }
-
-    public TipoContato(TipoContato tipoContato)
+    public static TipoContato NovoTipoContato(int id, string descricao)
     {
-        ID = tipoContato.ID;
-        Descricao = tipoContato.Descricao;
-        DataCadastro = tipoContato.DataCadastro;
-        DataAtualizacao = DateTime.Now;
-        Valida();
+        var tipoContato = new TipoContato
+        {
+            ID = id,
+            Descricao = descricao,
+            DataCadastro = DateTime.Now,
+            DataAtualizacao = DateTime.Now
+        };
+        tipoContato.Valida();
+        return tipoContato;
     }
-
-    public string Descricao { get; set; }
-
     public List<TipoContato> CarregaListaTipoContato()
     {
         List<TipoContato> tipoContatos = new List<TipoContato>()
         {
-            new TipoContato() {
-                ID = 1,
-                Descricao = "E-mail",
-                DataCadastro = DateTime.Now,
-                DataAtualizacao = DateTime.Now,
-            },
-            new TipoContato() {
-                ID = 2,
-                Descricao = "Telefone Fixo",
-                DataCadastro = DateTime.Now,
-                DataAtualizacao = DateTime.Now,
-            },
-            new TipoContato() {
-                ID = 3,
-                Descricao = "Celular",
-                DataCadastro = DateTime.Now,
-                DataAtualizacao = DateTime.Now,
-            }
+            NovoTipoContato(1, "E-mail"),
+            NovoTipoContato(2, "Telefone Fixo"),
+            NovoTipoContato(3, "Celular")
         };
         return tipoContatos;
+    }
+    public void AtualizarTipoContato(string descricao)
+    {
+        Descricao = descricao;
+        DataAtualizacao = DateTime.Now;
+        Valida();
     }
 }

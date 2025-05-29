@@ -27,7 +27,7 @@ public class CarteiraConfigurada
     {
         Random rdm = new Random();
         int valorInicial = Carteira.InicializaValorInicialDaPessoa();
-        double valorParaAcoes = Carteira.PorcentagelDoValorParaUmTipoDeAtivo(valorInicial);
+        double valorParaAcoes = Carteira.PorcentagemDoValorParaUmTipoDeAtivo(valorInicial);
         int qtdAcoes = rdm.Next(5, 30);
         double valorPorAcoes = valorParaAcoes / qtdAcoes;
         double valorParaFiis = valorInicial - valorParaAcoes;

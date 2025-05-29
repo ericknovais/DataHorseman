@@ -6,33 +6,19 @@ namespace DataHorseman.Domain.Entidades;
 [Table("Contatos")]
 public class Contato : EntidadeBase
 {
-    public Contato()
-    {
-        Pessoa = new Pessoa();
-        TipoContato = new TipoContato();
-        Valor = string.Empty;
-    }
-
-    public Contato(Pessoa pessoa, TipoContato tipoContato, string valor)
-    {
-        Pessoa = pessoa;
-        TipoContato = tipoContato;
-        Valor = valor;
-        DataCadastro = DateTime.Now;
-        DataAtualizacao = DateTime.Now;
-        Valida();
-    }
-    public Pessoa Pessoa { get; set; }
+    public Pessoa Pessoa { get; set; } = new Pessoa();
     public TipoContato? TipoContato { get; set; }
-    public string Valor { get; set; }
+    public int TipoContatoId { get; set; }
+
+    public string Valor { get; set; } = string.Empty;
 
     public static List<Contato> ListaDeContatos(Pessoa pessoa, IList<TipoContato> tipoContatos, string[] valoresContatos)
     {
         List<Contato> contatos = new List<Contato>();
         int cont = 0;
-        foreach (TipoContato tipoContato in tipoContatos) 
+        foreach (TipoContato tipoContato in tipoContatos)
         {
-            contatos.Add(new Contato(pessoa, tipoContato, valoresContatos[cont]));
+            contatos.Add(NovoContato(pessoa, tipoContato, valoresContatos[cont]));
             cont++;
         }
         return contatos;
@@ -69,6 +55,27 @@ public class Contato : EntidadeBase
     private void ValidaEmail()
     {
         if (!Valor.Contains("@"))
-            _msgErro.Append($"E-mail com formato invalido! {Environment.NewLine}");
+            AdicionarErro($"E-mail com formato invalido! {Environment.NewLine}");
+    }
+
+    public static Contato NovoContato(Pessoa pessoa, TipoContato tipoContato, string valor)
+    {
+        var contato = new Contato
+        {
+            Pessoa = pessoa,
+            TipoContatoId = tipoContato.ID,
+            Valor = valor,
+            DataCadastro = DateTime.UtcNow,
+            DataAtualizacao = DateTime.UtcNow
+        };
+        contato.Valida();
+        return contato;
+    }
+
+    public void AtualizarContato(string valor)
+    {
+        valor = valor.Trim();
+        DataAtualizacao = DateTime.UtcNow;
+        Valida();
     }
 }

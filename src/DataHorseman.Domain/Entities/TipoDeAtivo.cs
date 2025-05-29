@@ -7,12 +7,7 @@ public class TipoDeAtivo : EntidadeBase
 {
     [DatabaseGenerated(DatabaseGeneratedOption.None)]
     public new int ID { get; set; }
-    public TipoDeAtivo()
-    {
-        Descricao = string.Empty;
-    }
-
-    public string Descricao { get; set; }
+    public string Descricao { get; set; } = string.Empty;
 
     public override void Valida()
     {
@@ -20,24 +15,31 @@ public class TipoDeAtivo : EntidadeBase
         base.Valida();
     }
 
-    public List<TipoDeAtivo> CarregaTipoDeAtivo()
+    public static List<TipoDeAtivo> CarregaTipoDeAtivo()
     {
         return new List<TipoDeAtivo>()
         {
-            new TipoDeAtivo()
-            {
-                ID = 1,
-                Descricao = "Ação",
-                DataCadastro = DateTime.Now,
-                DataAtualizacao = DateTime.Now,
-            },
-            new TipoDeAtivo()
-            {
-                ID = 2,
-                Descricao = "Fundo Imobiliario",
-                DataCadastro = DateTime.Now,
-                DataAtualizacao =  DateTime.Now
-            }
+            NovoTipoDeAtivo(1, "Ação"),
+            NovoTipoDeAtivo(2, "Fundo Imobiliario"),
         };
+    }
+    public static TipoDeAtivo NovoTipoDeAtivo(int id, string descricao)
+    {
+        var tipoDeAtivo = new TipoDeAtivo
+        {
+            ID = id,
+            Descricao = descricao,
+            DataCadastro = DateTime.Now,
+            DataAtualizacao = DateTime.Now
+        };
+        tipoDeAtivo.Valida();
+        return tipoDeAtivo;
+    }
+
+    public void AtualizarTipoDeAtivo(string descricao)
+    {
+        Descricao = descricao;
+        DataAtualizacao = DateTime.Now;
+        Valida();
     }
 }

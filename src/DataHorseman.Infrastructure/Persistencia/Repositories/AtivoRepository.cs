@@ -2,6 +2,7 @@
 using DataHorseman.Domain.Enums;
 using DataHorseman.Domain.Interfaces;
 using DataHorseman.Infrastructure.Persistencia.DataContext;
+using Microsoft.EntityFrameworkCore;
 
 namespace DataHorseman.Infrastructure.Persistencia.Repositories
 {
@@ -13,11 +14,11 @@ namespace DataHorseman.Infrastructure.Persistencia.Repositories
             _contexto = contexto;
         }
 
-        public List<Ativo> ObtemAtivosPorTipoDeAtivoID(eTipoDeAtivo tipoDeAtivoID)
+        public Task<List<Ativo>> ObtemAtivosPorTipoDeAtivoIDAsync(eTipoDeAtivo tipoDeAtivoID)
         {
              var ativos = _contexto.Ativos
                     .Where(ativo => ativo.TipoDeAtivoId == (int)tipoDeAtivoID)
-                    .ToList();
+                    .ToListAsync();
             return ativos;
         }
     }

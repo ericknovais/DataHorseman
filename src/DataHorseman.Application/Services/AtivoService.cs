@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using DataHorseman.Application.Dtos;
 using DataHorseman.Application.Interfaces;
+using DataHorseman.Application.Validations;
 using DataHorseman.Domain.Entidades;
 using DataHorseman.Domain.Enums;
 using DataHorseman.Domain.Interfaces;
@@ -17,28 +18,20 @@ public class AtivoService : IAtivoService
         _mapper = mapper;
     }
 
-    private void EntidadeEhNula(AtivoDto entidade)
+    public async Task AtualizaAsync(AtivoDto entidade)
     {
-        if (entidade is null)
-            throw new ArgumentNullException(nameof(entidade), "O ativo fornecido não pode ser nula");
-    }
-
-    public async Task Atualiza(AtivoDto entidade)
-    {
-        EntidadeEhNula(entidade);
-
-        var ativo = await _ativoRepository.ObterPorIdAsync(entidade.ID);
-        if (ativo is null)
-            throw new KeyNotFoundException($"Nenhum ativo encontrado com o ID {entidade.ID}.");
-
-        ativo.AtualizarAtivo(entidade.Ticker, entidade.Nome);
-        _ativoRepository.Atualiza(ativo);
+        ValidacoesService.EntidadeEhNula(entidade);
+        ValidacoesService.ValidaIdMaiorQueZero(entidade.ID);
+        var ativoExiste = await _ativoRepository.ObterPorIdAsync(entidade.ID);
+        ValidacoesService.ObjetoNaoEncontrado(ativoExiste, entidade.ID, "ativo");
+        ativoExiste.AtualizarAtivo(entidade.Ticker, entidade.Nome);
+        _ativoRepository.Atualiza(ativoExiste);
         await _ativoRepository.SaveChangesAsync();
     }
 
     public async Task CriarNovoAsync(AtivoDto entidade)
     {
-        EntidadeEhNula(entidade);
+        ValidacoesService.EntidadeEhNula(entidade);
 
         var ativo = Ativo.NovoAtivo(
             entidade.TipoDeAtivoId,
@@ -49,25 +42,21 @@ public class AtivoService : IAtivoService
         await _ativoRepository.CriarNovoAsync(ativo);
     }
 
-    public async Task Excluir(AtivoDto entidade)
+    public async Task ExcluirAsync(AtivoDto entidade)
     {
-        EntidadeEhNula(entidade);
-
-        var ativo = await _ativoRepository.ObterPorIdAsync(entidade.ID);
-
-        if (ativo is null)
-            throw new KeyNotFoundException($"Nenhum ativo encontrado com o ID {entidade.ID}.");
-
-        _ativoRepository.Excluir(ativo);
+        ValidacoesService.EntidadeEhNula(entidade);
+        ValidacoesService.ValidaIdMaiorQueZero(entidade.ID);
+        var ativoExiste = await _ativoRepository.ObterPorIdAsync(entidade.ID);
+        ValidacoesService.ObjetoNaoEncontrado(ativoExiste, entidade.ID, "ativo");
+        _ativoRepository.Excluir(ativoExiste);
         await _ativoRepository.SaveChangesAsync();
     }
 
-    public List<AtivoDto> ObtemAtivosPorTipoDeAtivoID(eTipoDeAtivo tipoDeAtivoID)
+    public async Task<List<AtivoDto>> ObtemAtivosPorTipoDeAtivoIDAsync(eTipoDeAtivo tipoDeAtivoID)
     {
-        if ((int)tipoDeAtivoID <= 0)
-            throw new ArgumentException("O ID do tipo de ativo deve ser maior que zero.", nameof(tipoDeAtivoID));
+        ValidacoesService.ValidaIdMaiorQueZero((int)tipoDeAtivoID);
 
-        var ativos = _ativoRepository.ObtemAtivosPorTipoDeAtivoID(tipoDeAtivoID);
+        var ativos = await _ativoRepository.ObtemAtivosPorTipoDeAtivoIDAsync(tipoDeAtivoID);
         if (ativos is null || !ativos.Any())
             return new List<AtivoDto>();
 
@@ -76,21 +65,36 @@ public class AtivoService : IAtivoService
 
     public async Task<AtivoDto?> ObterPorIdAsync(int id)
     {
-        if (id <= 0)
-            throw new ArgumentOutOfRangeException(nameof(id), "O ID do ativo deve ser maior que zero.");
-
+        ValidacoesService.ValidaIdMaiorQueZero(id);
         var ativo = await _ativoRepository.ObterPorIdAsync(id);
-
         return ativo is not null ? _mapper.Map<AtivoDto>(ativo) : null;
     }
 
     public async Task<IList<AtivoDto>> ObterTodosAsync()
     {
         var ativos = await _ativoRepository.ObterTodosAsync();
-        if (ativos is null || !ativos.Any())
-            return new List<AtivoDto>();
-        return _mapper.Map<IList<AtivoDto>>(ativos);
+        return ativos is null || !ativos.Any() ?
+             new List<AtivoDto>()
+            : _mapper.Map<IList<AtivoDto>>(ativos);
     }
 
     public async Task<int> SaveChangesAsync() => await _ativoRepository.SaveChangesAsync();
+
+    public async Task CriarEmLoteAsync(IEnumerable<AtivoDto> entidades)
+    {
+        if (entidades == null || !entidades.Any())
+            return;
+
+        var ativos = entidades.Select(ativo =>
+         Ativo.NovoAtivo(
+             tipoDeAtivoID: ativo.TipoDeAtivoId,
+             ticker: ativo.Ticker,
+             nome: ativo.Nome,
+             ultimaNegociacao: ativo.UltimaNegociacao
+            )
+        ).ToList();
+
+        await _ativoRepository.CriarEmLoteAsync(ativos);
+        await _ativoRepository.SaveChangesAsync();
+    }
 }

@@ -9,6 +9,6 @@ public class AtivoProfile : Profile
     public AtivoProfile()
     {
         CreateMap<Ativo,AtivoDto>();
-        CreateMap<AtivoDto,Ativo>().ForMember(dest => dest.ID, opt => opt.Ignore()); ;
+        CreateMap<AtivoDto,Ativo>();
     }
 }
