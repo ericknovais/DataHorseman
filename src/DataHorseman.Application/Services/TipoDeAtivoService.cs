@@ -31,6 +31,7 @@ public class TipoDeAtivoService : ITipoDeAtivoService
     public async Task CriarEmLoteAsync(IEnumerable<TipoDeAtivo> entidades)
     {
         await _tipoDeAtivoRepository.CriarEmLoteAsync(entidades);
+        await _tipoDeAtivoRepository.SaveChangesAsync();
     }
 
     public async Task CriarNovoAsync(TipoDeAtivo entidade)

@@ -1,13 +1,11 @@
 using DataHorseman.Application.Dtos;
 using DataHorseman.Application.Interfaces;
 using DataHorseman.Application.Mappers;
+using DataHorseman.Application.UseCases.Ativos;
 using DataHorseman.Application.UseCases.CadastrarPessoa;
 using DataHorseman.Domain.Entidades;
 using DataHorseman.Domain.Enums;
 using DataHorseman.Infrastructure.Persistencia.Dtos;
-using DataHorseman.Infrastructure.Persistencia.Repositories;
-using System.Globalization;
-
 namespace DataHorseman.AppWin;
 
 public partial class frmUpload : Form
@@ -37,7 +35,15 @@ public partial class frmUpload : Form
     }
     private async void btnSalvar_Click(object sender, EventArgs e)
     {
-        await SalvarAsync();
+        btnSalvar.Enabled = false;
+        try
+        {
+            await ProcessarArquivoDePessoasAsync();
+        }
+        finally
+        {
+            btnSalvar.Enabled = true;
+        }
     }
     private async void frmUpload_Load(object sender, EventArgs e)
     {
@@ -56,23 +62,24 @@ public partial class frmUpload : Form
     #region Métodos asyncs
     private async Task InicializaDadosNoBanco()
     {
+        CargaDeAtivosUseCase cargaDeAtivosUseCase = new CargaDeAtivosUseCase(_service);
         try
         {
             var tipoContatos = await _service.TipoContatoService.ObterTodosAsync();
             if (!tipoContatos.Any())
-                SalvaTipoDeContatosNoBanco();
+                await _service.TipoContatoService.CriarEmLoteAsync(TipoContato.CarregaListaTipoContato());
 
             var tipoDeAtivos = await _service.TipoDeAtivoService.ObterTodosAsync();
             if (!tipoDeAtivos.Any())
-                SalvaTipoDeAtivosNoBanco();
+                await _service.TipoDeAtivoService.CriarEmLoteAsync(TipoDeAtivo.CarregaTipoDeAtivo());
 
             var acoes = await _service.AtivoService.ObtemAtivosPorTipoDeAtivoIDAsync(eTipoDeAtivo.Acao);
             if (!acoes.Any())
-                await SalvarAtivosNoBancoDeDados(eTipoDeAtivo.Acao);
+                await cargaDeAtivosUseCase.ExecutarAsync(eTipoDeAtivo.Acao);
 
             var fiis = await _service.AtivoService.ObtemAtivosPorTipoDeAtivoIDAsync(eTipoDeAtivo.FundoImobiliario);
             if (!fiis.Any())
-                await SalvarAtivosNoBancoDeDados(eTipoDeAtivo.FundoImobiliario);
+                await cargaDeAtivosUseCase.ExecutarAsync(eTipoDeAtivo.FundoImobiliario);
         }
         catch (Exception ex)
         {
@@ -93,44 +100,7 @@ public partial class frmUpload : Form
             MensagemDeErro($"Ocorreu um erro ao carregar as listas: {ex.Message}");
         }
     }
-    private async Task SalvarAtivosNoBancoDeDados(eTipoDeAtivo tipoDeAtivo)
-    {
-        string caminhoArquivo = tipoDeAtivo switch
-        {
-            eTipoDeAtivo.Acao => @"..\..\..\CargaDeAtivos\acoes.json",
-            eTipoDeAtivo.FundoImobiliario => @"..\..\..\CargaDeAtivos\fiis.json",
-            _ => throw new ArgumentOutOfRangeException(nameof(tipoDeAtivo), "Tipo de ativo não suportado.")
-        };
-
-        IList<AtivoJson>? ativos = _service.ArquivoService.LerArquivoJson<AtivoJson>(caminhoArquivo);
-        if (ativos != null)
-        {
-            // Filtro específico para FIIs
-            if (tipoDeAtivo == eTipoDeAtivo.FundoImobiliario)
-                ativos = ativos.Where(a => a.Ultimo != "0").ToList();
-
-            await SalvaListaDeAtivos(ativos.ToList(), tipoDeAtivo);
-        }
-    }
-    private async Task SalvaListaDeAtivos(List<AtivoJson> ativos, eTipoDeAtivo tipoDeAtivo)
-    {
-        var cultura = new CultureInfo("pt-BR");
-
-        var ativosDTO = ativos.Select(ativoJson =>
-        {
-            decimal valor = 0;
-            decimal.TryParse($"{ativoJson.Ultimo},{ativoJson.Decimal}", NumberStyles.Any, cultura, out valor);
-            return new AtivoDto
-            {
-                TipoDeAtivoId = tipoDeAtivo,
-                Ticker = ativoJson.Ticker,
-                Nome = ativoJson.Nome,
-                UltimaNegociacao = valor
-            };
-        }).ToList();
-        await _service.AtivoService.CriarEmLoteAsync(ativosDTO);
-    }
-    private async Task SalvarAsync()
+    private async Task ProcessarArquivoDePessoasAsync()
     {
         try
         {
@@ -156,7 +126,7 @@ public partial class frmUpload : Form
         {
             try
             {
-              await cadastroPessoaUseCase.ProcessaPessoaAsync(pessoaJson);
+                await cadastroPessoaUseCase.ProcessaPessoaAsync(pessoaJson);
             }
             catch (Exception)
             {
@@ -168,20 +138,6 @@ public partial class frmUpload : Form
     #endregion
 
     #region Métodos sem returno
-    private void SalvaTipoDeAtivosNoBanco()
-    {
-        List<TipoDeAtivo> listaTipoDeAtivos = TipoDeAtivo.CarregaTipoDeAtivo();
-        foreach (TipoDeAtivo tipoDeAtivo in listaTipoDeAtivos)
-            _service.TipoDeAtivoService.CriarNovoAsync(tipoDeAtivo);
-        _service.SaveChanges();
-    }
-    private void SalvaTipoDeContatosNoBanco()
-    {
-        List<TipoContato> listadeTipocontatos = new TipoContato().CarregaListaTipoContato();
-        foreach (TipoContato tipoContato in listadeTipocontatos)
-            _service.TipoContatoService.CriarNovoAsync(tipoContato);
-        _service.SaveChanges();
-    }
     private void ExibirMensagemCadastro(List<string> pessoasComErro)
     {
         if (pessoasComErro.Any())

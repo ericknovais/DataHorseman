@@ -41,22 +41,18 @@ public class CarteiraService : ICarteiraService
             );
 
         var tasks = new List<Task>();
-
-        foreach (var acao in carteiraConfigurada.Acoes)
-            tasks.Add(_carteiraRepository.CriarNovoAsync(
-                Carteira.NovaCarteira(
-                    entidade.Pessoa,
-                    acao,
-                    carteiraConfigurada.ValorParaAcoes)));
-
-        foreach (var fii in carteiraConfigurada.Fiis)
-            tasks.Add(_carteiraRepository.CriarNovoAsync(
-                Carteira.NovaCarteira(
-                    entidade.Pessoa,
-                    fii,
-                    carteiraConfigurada.ValorPorFiis)));
+        tasks.AddRange(CriarCarteirasValidas(carteiraConfigurada.Acoes, entidade.Pessoa, carteiraConfigurada.ValorParaAcoes));
+        tasks.AddRange(CriarCarteirasValidas(carteiraConfigurada.Fiis, entidade.Pessoa, carteiraConfigurada.ValorParaAcoes));
 
         await Task.WhenAll(tasks);
+    }
+    private List<Task> CriarCarteirasValidas(IEnumerable<Ativo> ativos, Pessoa pessoa, double valor)
+    {
+        return ativos
+            .Select(ativo => Carteira.NovaCarteira(pessoa, ativo, valor))
+            .Where(carteira => carteira.Cota > 0)
+            .Select(carteira => _carteiraRepository.CriarNovoAsync(carteira))
+            .ToList();
     }
 
     public Task CriarNovoAsync(CarteiraDto entidade)
