@@ -1,4 +1,5 @@
 ﻿using DataHorseman.Domain.Entidades;
+using DataHorseman.Infrastructure.Persistencia.Configurations;
 using Microsoft.EntityFrameworkCore;
 
 namespace DataHorseman.Infrastructure.Persistencia.DataContext;
@@ -30,10 +31,7 @@ public class DataHorsemanDbContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        modelBuilder.Entity<Pessoa>().Property(pessoa => pessoa.Nome).IsRequired();
-        modelBuilder.Entity<Pessoa>().Property(pessoa => pessoa.Nome).HasColumnType("Varchar(max)");
-        modelBuilder.Entity<Pessoa>().Property(pessoa => pessoa.DataNascimento).HasColumnType("Date");
-        modelBuilder.Entity<Pessoa>().HasIndex(pessoa => pessoa.CPF).HasDatabaseName("IX_Pessoa_CPF").IsUnique();
+        modelBuilder.ApplyConfiguration(new PessoaConfiguration());
         base.OnModelCreating(modelBuilder);
     }
 }
