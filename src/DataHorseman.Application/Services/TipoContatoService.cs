@@ -31,6 +31,7 @@ public class TipoContatoService : ITipoContatoService
     public async Task CriarEmLoteAsync(IEnumerable<TipoContato> entidades)
     {
         await _tipoContatoRepository.CriarEmLoteAsync(entidades);
+        await _tipoContatoRepository.SaveChangesAsync();
     }
 
     public async Task CriarNovoAsync(TipoContato entidade)
