@@ -26,13 +26,13 @@ public class TipoContato : EntidadeBase
         tipoContato.Valida();
         return tipoContato;
     }
-    public List<TipoContato> CarregaListaTipoContato()
+    public static List<TipoContato> CarregaListaTipoContato()
     {
         List<TipoContato> tipoContatos = new List<TipoContato>()
         {
-            NovoTipoContato(1, "E-mail"),
-            NovoTipoContato(2, "Telefone Fixo"),
-            NovoTipoContato(3, "Celular")
+            NovoTipoContato(10, "E-mail"),
+            NovoTipoContato(20, "Telefone Fixo"),
+            NovoTipoContato(30, "Celular")
         };
         return tipoContatos;
     }

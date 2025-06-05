@@ -15,7 +15,7 @@ namespace DataHorseman.Domain.Entidades
 
         public override void Valida()
         {
-            ValidaCampoNumerico(Cota, "Cota");
+            //ValidaCampoNumerico(Cota, "Cota");
             ValidaCampoNumerico(PessoaId, "PessoaId");
             ValidaCampoNumerico(AtivoId, "AtivoId");
             base.Valida();
@@ -23,7 +23,6 @@ namespace DataHorseman.Domain.Entidades
 
         public static Carteira NovaCarteira(Pessoa pessoa, Ativo ativo, double valorPorAtivo)
         {
-
             var cota = Carteira.QuantidadeDeUmAtivo(valorPorAtivo, Convert.ToDouble(ativo.UltimaNegociacao));
             Carteira carteira = new Carteira()
             {
